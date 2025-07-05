@@ -10,7 +10,7 @@ tello.streamon()
 frame_read = tello.get_frame_read()
 
 tello.takeoff()
-cv2.imwrite("picture.png", frame_read.frame)
+cv2.imwrite("test_image.png", frame_read.frame)
 
 
 # Load a pretrained YOLO11n model
@@ -28,10 +28,11 @@ model = YOLO("yolo11n.pt")
 # metrics = model.val()
 
 # Perform object detection on an image
-results = model("picture.png")  # Predict on an image
+results = model("test_image.png")  # Predict on an image
 results[0].show()  # Display results
 
 # Export the model to ONNX format for deployment
-path = model.export(format="onnx")  # Returns the path to the exported model
+# path = model.export(format="onnx")  # Returns the path to the exported model
 
 tello.land()
+
