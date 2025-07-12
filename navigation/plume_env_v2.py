@@ -424,6 +424,6 @@ if __name__ == '__main__':
     plot_scent_heatmap(env)
     plot_3d_trajectory(env)
     # animate_3d_trajectory(env)
-    animate_scent_plume(env, wind_vector=(1, 0.5, 0.2), steps=40)
+    animate_scent_plume(env, wind_vector=(5, 0.5, 0.2), steps=40)
 
 
