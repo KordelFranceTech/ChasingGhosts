@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 class PlumeEnvironment3D(gym.Env):
-    def __init__(self, grid_size=(20, 20, 10), source_position=(10, 10, 5), gas_diffusivity=0.01, wind_vector=(0.1, 0.0, 0.0)):
+
+    def __init__(self, grid_size=(20, 20, 10), source_position=(10, 10, 5), gas_diffusivity=0.001, wind_vector=(0.1, 0.0, 0.0)):
         super(PlumeEnvironment3D, self).__init__()
         self.grid_size = grid_size
         self.source_position = source_position
