@@ -105,7 +105,7 @@ def train_agent(env, episodes=1000, alpha=0.1, gamma=0.9, epsilon=0.1):
         obs = env.reset()
         state = tuple((obs * env.grid_size).astype(int))
 
-        for step in range(200):
+        for step in range(1000):
             if random.uniform(0, 1) < epsilon:
                 action = env.action_space.sample()
             else:

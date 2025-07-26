@@ -391,7 +391,7 @@ if __name__ == '__main__':
     memory = ReplayMemory(10000)
     agent = DQNAgent(state_dim=57, action_dim=6, memory=memory)
 
-    episodes = 1500
+    episodes = 1000
     batch_size = 32
     rewards = []
 
