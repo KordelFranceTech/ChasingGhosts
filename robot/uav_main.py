@@ -4,6 +4,8 @@ import pandas as pd
 from djitellopy import Tello
 
 from .utils import ble_utils
+from . import constants
+
 
 os_l_list: list = []
 os_r_list: list = []
@@ -12,29 +14,25 @@ os_r_list: list = []
 """
 Data I/O example:
 """
-io_example: dict = {
-    "ENV_temperatureC":0,
-    "ENV_humidity":0,
+io_example: dict ={
+    "ENV_temperatureC":24,
+    "ENV_humidity":62,
     "ENV_pressureHpa":1010,
     "STATUS_opuA":0,
     "BATT_health":98,
     "BATT_v":4.5,
     "BATT_charge":83,
     "BATT_time":2,
-    "CO2":0.521876,
-    "CO":999.9269,
-    "C2H5OH":0.201299,
-    "C6H5CH3":0.07133,
-    "NH4":0.999718,
-    "C3H6O":0.063425,
-    "C4H10":12.06684,
-    "CH4":18.6352,
-    "CH3OH":22.72474,
-    "C6H6":0.000052,
-    "C6H14":0.039633,
-    "H2":48.53448,
-    "ToF_dist_mm": 100.0,
+    "CO2":1058,
+    "CO_A":720,
+    "NH3_A":93,
+    "NO2_A":5.68,
+    "CO_B":720,
+    "NH3_B":93,
+    "NO2_B":5.68,
+    "ToF_mm":100.0
 }
+
 
 
 def command_loop():
@@ -42,8 +40,8 @@ def command_loop():
     tello.send_keepalive()
     uav_state = tello.get_current_state()
     print(f"\tcurrent uav state: {uav_state}")
-    olf_l_sample = UAV_IO_FRAME["C2H5OH_A"]
-    olf_r_sample = UAV_IO_FRAME["C2H5OH_B"]
+    olf_l_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"]
+    olf_r_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"]
     os_l_list.append(olf_l_sample)
     os_r_list.append(olf_r_sample)
 
@@ -56,7 +54,7 @@ def command_loop():
         tello.rotate_clockwise(90)
         tello.move_forward(10)
     else:
-        if float(UAV_IO_FRAME["ToF_dist_mm"]) > 120.0:
+        if float(UAV_IO_FRAME["ToF_mm"]) > 120.0:
             tello.move_forward(10)
         else:
             tello.move_back(10)
@@ -67,12 +65,12 @@ def command_loop_with_bout_detection():
     tello.send_keepalive()
     uav_state = tello.get_current_state()
     print(f"\tcurrent uav state: {uav_state}")
-    olf_l_sample: float = UAV_IO_FRAME.head(1)["C2H5OH_A"]
-    olf_r_sample: float = UAV_IO_FRAME.head(1)["C2H5OH_B"]
+    olf_l_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"]
+    olf_r_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"]
     os_l_list.append(olf_l_sample)
     os_r_list.append(olf_r_sample)
-    os_l_ddx_list: pd.DataFrame = UAV_IO_FRAME["C2H5OH_A"].diff()
-    os_r_ddx_list: pd.DataFrame = UAV_IO_FRAME["C2H5OH_A"].diff()
+    os_l_ddx_list: pd.DataFrame = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"].diff()
+    os_r_ddx_list: pd.DataFrame = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"].diff()
     os_l_d2dx2_list: list = os_l_ddx_list.diff().tolist()
     os_r_d2dx2_list: list = os_r_ddx_list.diff().tolist()
     os_l_d2dx2: float = os_l_d2dx2_list[0]
@@ -87,7 +85,7 @@ def command_loop_with_bout_detection():
         tello.rotate_clockwise(90)
         tello.move_forward(10)
     else:
-        if float(UAV_IO_FRAME["ToF_dist_mm"]) > 120.0:
+        if float(UAV_IO_FRAME["ToF_mm"]) > 120.0:
             tello.move_forward(10)
         else:
             tello.move_back(10)

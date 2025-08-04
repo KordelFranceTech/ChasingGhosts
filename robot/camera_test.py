@@ -16,6 +16,8 @@ cv2.imwrite("test_image.png", frame_read.frame)
 # Load a pretrained YOLO11n model
 model = YOLO("yolo11n.pt")
 
+door_model = YOLO("doors.pt")  # Load the best model
+
 # # Train the model on the COCO8 dataset for 100 epochs
 # train_results = model.train(
 #     data="coco8.yaml",  # Path to dataset configuration file
