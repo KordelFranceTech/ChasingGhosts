@@ -4,6 +4,7 @@
 SERVICE_UUID: str = "569a1101-b87f-490c-92cb-11ba5ea5167c"
 CHARACTERISTIC_UUID: str = "569a2000-b87f-490c-92cb-11ba5ea5167c"
 SERVICE_NAME: str = "A00019"
+BLE_SAMPLE_TIME: int = 10
 
 # Chemical params
 TARGET_COMPOUND: str = "NH3"

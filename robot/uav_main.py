@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from djitellopy import Tello
 
-from .utils import ble_utils
+from .utils import ble_utils, ml_utils
 from . import constants
 
 
@@ -91,22 +91,54 @@ def command_loop_with_bout_detection():
             tello.move_back(10)
 
 
-if __name__ == "__main__":
-    asyncio.run(ble_utils.discover_ble_devices())
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(ble_utils.connect_to_ble_device())
+def navigate_to_door():
+    from .io_data import UAV_IO_FRAME
+    if not tello.stream_on():
+        return
+    frame_read = tello.get_frame_read()
+    yolo_results = ml_utils.infer_doorways(uav_camera_frame=frame_read, is_test=False, should_display=True)
+    if yolo_results is not None:
+        door = ml_utils.get_nearest_door(yolo_results=yolo_results)
+        door_cx, door_cy = ml_utils.get_centroid_of_nearest_door(door_xywhn=door)
+        # We are too far right of the door, move left
+        if float(door_cx) < 0.4:
+            tello.move_left(5)
+        # We are too far left of the door, move right
+        elif float(door_cx) > 0.6:
+            tello.move_right(5)
+        # We are nearly aligned with door center, move forward
+        else:
+            if float(UAV_IO_FRAME["ToF_mm"]) > 120.0:
+                tello.move_forward(10)
+            else:
+                tello.move_back(10)
 
+
+if __name__ == "__main__":
+
+    ble_utils.connect_to_sensor()
     tello = Tello()
     tello.connect()
+    tello.stream_on()
     tello.takeoff()
+
+    # Health check
     tello.rotate_clockwise(90)
     tello.rotate_counter_clockwise(90)
     tello.move_forward(10)
+    tello.move_back(10)
 
     for _ in range(10):
+        ble_utils.connect_to_sensor()
+        # Check for nearest door
+        navigate_to_door()
+        # Sample olfaction sensors and make decisions
         command_loop()
-        time.sleep(10)
 
     tello.land()
     if tello.stream_on:
         tello.streamoff()
+
+
+
+

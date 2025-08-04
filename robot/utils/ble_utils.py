@@ -3,13 +3,7 @@ import bleak
 from bleak import BleakClient, BleakScanner
 
 from ..io_data import UAV_IO_FRAME
-
-
-# BLE params
-SERVICE_UUID: str = "569a1101-b87f-490c-92cb-11ba5ea5167c"
-CHARACTERISTIC_UUID: str = "569a2002-b87f-490c-92cb-11ba5ea5167c"
-SERVICE_NAME: str = "Scentience"
-
+from .. import constants
 
 
 async def discover_ble_devices():
@@ -18,11 +12,17 @@ async def discover_ble_devices():
         print(d)
 
 
-async def connect_to_ble_device():
+def connect_to_sensor():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(async_sample_from_device())
+
+
+async def async_sample_from_device():
     devices = await bleak.BleakScanner.discover()
     target_device = None
     for device in devices:
-        if device.name == SERVICE_NAME:
+        print(device.name)
+        if device.name == constants.SERVICE_NAME:
             target_device = device
             break
     if target_device is None:
@@ -31,17 +31,27 @@ async def connect_to_ble_device():
 
     async def notification_handler(sender, data):
         # Decode received data
-        io_data = data.decode('utf-8')
-        print(f"received data: {io_data}")
-        UAV_IO_FRAME.append(dict(io_data))
+        ppm = data.decode('utf-8')
+        print(f"received data: {ppm}")
 
     async with BleakClient(target_device.address) as client:
         print(f"Connected to {target_device.name}")
+
+        # Get all services
+        for service in client.services:
+            print(f"Service: {service.uuid} (Handle: {service.handle})")
+
+            # Get all characteristics within each service
+            for char in service.characteristics:
+                print(f"\tCharacteristic: {char.uuid} (Handle: {char.handle})")
+                print(f"\t\tProperties: {','.join(char.properties)}")
+
+
         # Enable notifications for the characteristic
-        await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
+        await client.start_notify(constants.CHARACTERISTIC_UUID, notification_handler)
         # Keep the script running to receive notifications
         # Run for 10 seconds...adjust as needed
-        await asyncio.sleep(10)
+        await asyncio.sleep(constants.BLE_SAMPLE_TIME)
 
 """    
     // Wifi
