@@ -3,20 +3,20 @@ from djitellopy import Tello
 from ultralytics import YOLO
 
 
-tello = Tello()
-tello.connect()
-
-tello.streamon()
-frame_read = tello.get_frame_read()
-
-tello.takeoff()
-cv2.imwrite("test_image.png", frame_read.frame)
+# tello = Tello()
+# tello.connect()
+#
+# tello.streamon()
+# frame_read = tello.get_frame_read()
+#
+# tello.takeoff()
+# cv2.imwrite("test_image.png", frame_read.frame)
 
 
 # Load a pretrained YOLO11n model
-model = YOLO("yolo11n.pt")
+# model = YOLO("yolo11n.pt")
 
-door_model = YOLO("doors.pt")  # Load the best model
+model = YOLO("../models/yolo_doors.pt")  # Load the best model
 
 # # Train the model on the COCO8 dataset for 100 epochs
 # train_results = model.train(
@@ -30,11 +30,14 @@ door_model = YOLO("doors.pt")  # Load the best model
 # metrics = model.val()
 
 # Perform object detection on an image
-results = model("test_image.png")  # Predict on an image
+results = model("../images/door_test.jpg")  # Predict on an image
+print(results[0])
+print("----")
+print(results)
 results[0].show()  # Display results
 
 # Export the model to ONNX format for deployment
 # path = model.export(format="onnx")  # Returns the path to the exported model
 
-tello.land()
+# tello.land()
 
