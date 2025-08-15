@@ -2,8 +2,8 @@ import asyncio
 import bleak
 from bleak import BleakClient, BleakScanner
 
-from ..io_data import UAV_IO_FRAME
-from .. import constants
+# from ..io_data import UAV_IO_FRAME
+import constants
 
 
 async def discover_ble_devices():
@@ -22,8 +22,10 @@ async def async_sample_from_device():
     target_device = None
     for device in devices:
         print(device.name)
-        if device.name == constants.SERVICE_NAME:
+        # if device.name == constants.SERVICE_NAME:
+        if "UAV" in str(device.name):
             target_device = device
+            print(f"target device found: {target_device.name}")
             break
     if target_device is None:
         print("No Scentience devices found")

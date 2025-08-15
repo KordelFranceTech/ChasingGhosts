@@ -3,8 +3,8 @@ import time
 import pandas as pd
 from djitellopy import Tello
 
-from .utils import ble_utils, ml_utils
-from . import constants
+from utils import ble_utils, ml_utils
+import constants
 
 
 os_l_list: list = []
@@ -117,27 +117,32 @@ def navigate_to_door():
 if __name__ == "__main__":
 
     ble_utils.connect_to_sensor()
+    time.sleep(5)
     tello = Tello()
     tello.connect()
-    tello.stream_on()
+    # tello.stream_on()
     tello.takeoff()
+    time.sleep(4)
 
-    # Health check
-    tello.rotate_clockwise(90)
-    tello.rotate_counter_clockwise(90)
-    tello.move_forward(10)
-    tello.move_back(10)
+    # # Health check
+    # tello.rotate_clockwise(90)
+    # tello.rotate_counter_clockwise(90)
+    # tello.move_forward(10)
+    # tello.move_back(10)
 
-    for _ in range(10):
+    for _ in range(5):
         ble_utils.connect_to_sensor()
-        # Check for nearest door
-        navigate_to_door()
-        # Sample olfaction sensors and make decisions
-        command_loop()
+        if not constants.DEBUG_MODE:
+            # Check for nearest door
+            navigate_to_door()
+            # Sample olfaction sensors and make decisions
+            command_loop()
+        time.sleep(3)
 
     tello.land()
-    if tello.stream_on:
-        tello.streamoff()
+    # if tello.stream_on:
+    #     tello.streamoff()
+    tello.end()
 
 
 

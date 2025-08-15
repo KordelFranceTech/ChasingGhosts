@@ -35,6 +35,12 @@ def infer_general(uav_camera_frame, is_test:bool=False, should_display:bool=Fals
 
 
 def get_nearest_door(yolo_results: list):
+    """
+    For documentation on how the YOLO response is structured:
+        https://docs.ultralytics.com/modes/predict/#images
+    :param yolo_results: list - array of objects detected
+    :return: list - array with xywhn of nearest bounding box
+    """
     if len(yolo_results) > 0:
         if yolo_results[0].probs is not None:
             max_prob: float = -1.0
