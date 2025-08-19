@@ -182,6 +182,7 @@ if __name__ == "__main__":
         print("tello.move_back(10)")
         time.sleep(constants.STEP_TIME)
 
+    # Sample twice to build enough bank for bout detection
     if target_device is not None:
         asyncio.run(ble_utils.async_sample_from_device(target_device))
         asyncio.run(ble_utils.async_sample_from_device(target_device))
