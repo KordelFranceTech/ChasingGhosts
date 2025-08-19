@@ -36,7 +36,7 @@ io_example: dict ={
 
 
 def command_loop():
-    from .io_data import UAV_IO_FRAME
+    from io_data import UAV_IO_FRAME
     tello.send_keepalive()
     uav_state = tello.get_current_state()
     print(f"\tcurrent uav state: {uav_state}")
@@ -61,34 +61,69 @@ def command_loop():
 
 
 def command_loop_with_bout_detection():
-    from .io_data import UAV_IO_FRAME
-    tello.send_keepalive()
-    uav_state = tello.get_current_state()
-    print(f"\tcurrent uav state: {uav_state}")
+    from io_data import UAV_IO_FRAME
+    if constants.FLIGHT_MODE:
+        tello.send_keepalive()
+        uav_state = tello.get_current_state()
+        print(f"\tcurrent uav state: {uav_state}")
+    else:
+        print("Sampling olfaction sensors...")
+        time.sleep(constants.STEP_TIME)
+    # print(f"io frame: {UAV_IO_FRAME}")
     olf_l_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"]
     olf_r_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"]
     os_l_list.append(olf_l_sample)
     os_r_list.append(olf_r_sample)
+    # os_l_list.pop(0)
+    # os_r_list.pop(0)
     os_l_ddx_list: pd.DataFrame = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"].diff()
     os_r_ddx_list: pd.DataFrame = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"].diff()
     os_l_d2dx2_list: list = os_l_ddx_list.diff().tolist()
     os_r_d2dx2_list: list = os_r_ddx_list.diff().tolist()
+    os_l_d2dx2_list.pop(0)
+    os_l_d2dx2_list.pop(0)
+    os_r_d2dx2_list.pop(0)
+    os_r_d2dx2_list.pop(0)
     os_l_d2dx2: float = os_l_d2dx2_list[0]
     os_r_d2dx2: float = os_r_d2dx2_list[0]
+    # os_l_d2dx2: float = os_l_ddx_list[0].tolist().pop(0)
+    # os_r_d2dx2: float = os_r_ddx_list[0].tolist().pop(0)
+
+    print(f"\n\tbout list d/dx:\n\t\tleft: {os_l_ddx_list.tolist()}\n\t\tright: {os_r_ddx_list.tolist()}\n")
+    print(f"\n\tbout list d2/dx2:\n\t\tleft: {os_l_d2dx2_list}\n\t\tright: {os_r_d2dx2_list}\n")
 
     if os_l_d2dx2 > os_r_d2dx2:
+        print("moving left...")
         # tello.move_left(100)
-        tello.rotate_counter_clockwise(90)
-        tello.move_forward(10)
-    elif os_l_d2dx2 > os_r_d2dx2:
+        if constants.FLIGHT_MODE:
+            tello.rotate_counter_clockwise(90)
+        else:
+            print("tello.rotate_counter_clockwise(90)")
+            time.sleep(constants.STEP_TIME)
+
+    elif os_r_d2dx2 > os_l_d2dx2:
+        print("moving right...")
         # tello.move_right(100)
-        tello.rotate_clockwise(90)
-        tello.move_forward(10)
+        if constants.FLIGHT_MODE:
+            tello.rotate_clockwise(90)
+        else:
+            print("tello.rotate_clockwise(90)")
+            time.sleep(constants.STEP_TIME)
     else:
-        if float(UAV_IO_FRAME["ToF_mm"]) > 120.0:
+        print("not moving...")
+
+    if float(UAV_IO_FRAME.iloc[0]["TOF_mm"]) > 0.18:
+        if constants.FLIGHT_MODE:
             tello.move_forward(10)
         else:
+            print("tello.move_forward(10)")
+            time.sleep(constants.STEP_TIME)
+    else:
+        if constants.FLIGHT_MODE:
             tello.move_back(10)
+        else:
+            print("tello.move_back(10)")
+            time.sleep(constants.STEP_TIME)
 
 
 def navigate_to_door():
@@ -108,7 +143,7 @@ def navigate_to_door():
             tello.move_right(5)
         # We are nearly aligned with door center, move forward
         else:
-            if float(UAV_IO_FRAME["ToF_mm"]) > 120.0:
+            if float(UAV_IO_FRAME["ToF_mm"]) > 0.18:
                 tello.move_forward(10)
             else:
                 tello.move_back(10)
@@ -116,33 +151,62 @@ def navigate_to_door():
 
 if __name__ == "__main__":
 
-    ble_utils.connect_to_sensor()
-    time.sleep(5)
-    tello = Tello()
-    tello.connect()
-    # tello.stream_on()
-    tello.takeoff()
-    time.sleep(4)
+    target_device = ble_utils.connect_to_sensor()
+    time.sleep(constants.STEP_TIME)
 
-    # # Health check
-    # tello.rotate_clockwise(90)
-    # tello.rotate_counter_clockwise(90)
-    # tello.move_forward(10)
-    # tello.move_back(10)
+    if constants.FLIGHT_MODE:
+        tello = Tello()
+        tello.connect()
+        # tello.stream_on()
+        tello.takeoff()
+        time.sleep(constants.STEP_TIME)
 
-    for _ in range(5):
-        ble_utils.connect_to_sensor()
+        # Health check
+        tello.rotate_clockwise(90)
+        tello.rotate_counter_clockwise(90)
+        tello.move_forward(10)
+        tello.move_back(10)
+    else:
+        print("\n----INIT----")
+        print("tello = Tello()")
+        print("tello.connect()")
+        print("tello.stream_on()")
+        print("tello.takeoff()")
+        time.sleep(constants.STEP_TIME)
+
+        # Health check
+        print("\n------HEALTH CHECK----")
+        print("tello.rotate_clockwise(90)")
+        print("tello.rotate_counter_clockwise(90)")
+        print("tello.move_forward(10)")
+        print("tello.move_back(10)")
+        time.sleep(constants.STEP_TIME)
+
+    if target_device is not None:
+        asyncio.run(ble_utils.async_sample_from_device(target_device))
+        asyncio.run(ble_utils.async_sample_from_device(target_device))
+
+
+    for i in range(5):
+        print(f"\n-----COMMAND LOOP {i + 1}-----")
+        # ble_utils.connect_to_sensor()
+        if target_device is not None:
+            asyncio.run(ble_utils.async_sample_from_device(target_device))
+        else:
+            break
         if not constants.DEBUG_MODE:
-            # Check for nearest door
-            navigate_to_door()
+            # # Check for nearest door
+            # navigate_to_door()
             # Sample olfaction sensors and make decisions
-            command_loop()
-        time.sleep(3)
+            # command_loop()
+            command_loop_with_bout_detection()
+        time.sleep(constants.STEP_TIME)
 
-    tello.land()
-    # if tello.stream_on:
-    #     tello.streamoff()
-    tello.end()
+    if constants.FLIGHT_MODE:
+        tello.land()
+        # if tello.stream_on:
+        #     tello.streamoff()
+        tello.end()
 
 
 
