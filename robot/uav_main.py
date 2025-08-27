@@ -14,7 +14,7 @@ os_r_list: list = []
 """
 Data I/O example:
 """
-io_example: dict ={
+io_example: dict = {
     "ENV_temperatureC":24,
     "ENV_humidity":62,
     "ENV_pressureHpa":1010,
@@ -84,28 +84,30 @@ def command_loop_with_bout_detection():
     os_l_d2dx2_list.pop(0)
     os_r_d2dx2_list.pop(0)
     os_r_d2dx2_list.pop(0)
-    os_l_d2dx2: float = os_l_d2dx2_list[0]
-    os_r_d2dx2: float = os_r_d2dx2_list[0]
-    # os_l_d2dx2: float = os_l_ddx_list[0].tolist().pop(0)
-    # os_r_d2dx2: float = os_r_ddx_list[0].tolist().pop(0)
+    # os_l_d2dx2: float = os_l_d2dx2_list[0]
+    # os_r_d2dx2: float = os_r_d2dx2_list[0]
+    os_l_d2dx2: float = os_l_ddx_list[0]
+    os_r_d2dx2: float = os_r_ddx_list[0]
 
     print(f"\n\tbout list d/dx:\n\t\tleft: {os_l_ddx_list.tolist()}\n\t\tright: {os_r_ddx_list.tolist()}\n")
     print(f"\n\tbout list d2/dx2:\n\t\tleft: {os_l_d2dx2_list}\n\t\tright: {os_r_d2dx2_list}\n")
 
-    if os_l_d2dx2 > os_r_d2dx2:
+    if (os_r_d2dx2 != 0.0 and os_l_d2dx2 / os_r_d2dx2 > 1.2) or (os_l_d2dx2 != 0.0 and os_r_d2dx2 / os_l_d2dx2 < 0.8):
         print("moving left...")
         # tello.move_left(100)
         if constants.FLIGHT_MODE:
             tello.rotate_counter_clockwise(90)
+            time.sleep(constants.STEP_TIME)
         else:
             print("tello.rotate_counter_clockwise(90)")
             time.sleep(constants.STEP_TIME)
 
-    elif os_r_d2dx2 > os_l_d2dx2:
+    elif (os_l_d2dx2 != 0.0 and os_r_d2dx2 / os_l_d2dx2 > 1.2) or (os_r_d2dx2 != 0.0 and os_l_d2dx2 / os_r_d2dx2 < 0.8):
         print("moving right...")
         # tello.move_right(100)
         if constants.FLIGHT_MODE:
             tello.rotate_clockwise(90)
+            time.sleep(constants.STEP_TIME)
         else:
             print("tello.rotate_clockwise(90)")
             time.sleep(constants.STEP_TIME)
@@ -115,12 +117,14 @@ def command_loop_with_bout_detection():
     if float(UAV_IO_FRAME.iloc[0]["TOF_mm"]) > 0.18:
         if constants.FLIGHT_MODE:
             tello.move_forward(10)
+            time.sleep(constants.STEP_TIME)
         else:
             print("tello.move_forward(10)")
             time.sleep(constants.STEP_TIME)
     else:
         if constants.FLIGHT_MODE:
             tello.move_back(10)
+            time.sleep(constants.STEP_TIME)
         else:
             print("tello.move_back(10)")
             time.sleep(constants.STEP_TIME)
@@ -163,9 +167,13 @@ if __name__ == "__main__":
 
         # Health check
         tello.rotate_clockwise(90)
+        time.sleep(constants.STEP_TIME)
         tello.rotate_counter_clockwise(90)
+        time.sleep(constants.STEP_TIME)
         tello.move_forward(10)
+        time.sleep(constants.STEP_TIME)
         tello.move_back(10)
+        time.sleep(constants.STEP_TIME)
     else:
         print("\n----INIT----")
         print("tello = Tello()")
@@ -188,7 +196,7 @@ if __name__ == "__main__":
         asyncio.run(ble_utils.async_sample_from_device(target_device))
 
 
-    for i in range(5):
+    for i in range(20):
         print(f"\n-----COMMAND LOOP {i + 1}-----")
         # ble_utils.connect_to_sensor()
         if target_device is not None:

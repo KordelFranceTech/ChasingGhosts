@@ -52,6 +52,7 @@ async def async_sample_from_device(target_device):
         # df_updated: pd.DataFrame = df_old.append(new_row_series, ignore_index=True)
         df_updated = pd.concat([dc, df_old], ignore_index=True)
         io_data.UAV_IO_FRAME = df_updated
+        df_updated.to_csv("df.csv")
         # print(f"received data: {db}")
 
     async with BleakClient(target_device.address) as client:
