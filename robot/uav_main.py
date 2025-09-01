@@ -70,8 +70,8 @@ def command_loop_with_bout_detection():
         print("Sampling olfaction sensors...")
         time.sleep(constants.STEP_TIME)
     # print(f"io frame: {UAV_IO_FRAME}")
-    olf_l_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"]
-    olf_r_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"]
+    olf_l_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_B"]
+    olf_r_sample = UAV_IO_FRAME[f"{constants.TARGET_COMPOUND}_A"]
     os_l_list.append(olf_l_sample)
     os_r_list.append(olf_r_sample)
     # os_l_list.pop(0)
@@ -84,10 +84,10 @@ def command_loop_with_bout_detection():
     os_l_d2dx2_list.pop(0)
     os_r_d2dx2_list.pop(0)
     os_r_d2dx2_list.pop(0)
-    # os_l_d2dx2: float = os_l_d2dx2_list[0]
-    # os_r_d2dx2: float = os_r_d2dx2_list[0]
-    os_l_d2dx2: float = os_l_ddx_list[0]
-    os_r_d2dx2: float = os_r_ddx_list[0]
+    os_l_d2dx2: float = os_l_d2dx2_list[0]
+    os_r_d2dx2: float = os_r_d2dx2_list[0]
+    # os_l_d2dx2: float = os_l_ddx_list[0]
+    # os_r_d2dx2: float = os_r_ddx_list[0]
 
     print(f"\n\tbout list d/dx:\n\t\tleft: {os_l_ddx_list.tolist()}\n\t\tright: {os_r_ddx_list.tolist()}\n")
     print(f"\n\tbout list d2/dx2:\n\t\tleft: {os_l_d2dx2_list}\n\t\tright: {os_r_d2dx2_list}\n")
@@ -156,7 +156,9 @@ def navigate_to_door():
 if __name__ == "__main__":
 
     target_device = ble_utils.connect_to_sensor()
-    time.sleep(constants.STEP_TIME)
+    if target_device is None:
+        jwoejoihjw
+    # time.sleep(constants.STEP_TIME)
 
     if constants.FLIGHT_MODE:
         tello = Tello()

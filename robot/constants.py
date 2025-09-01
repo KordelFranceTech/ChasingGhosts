@@ -1,5 +1,5 @@
 DEBUG_MODE: bool = False
-FLIGHT_MODE: bool = False
+FLIGHT_MODE: bool = True
 
 # BLE params
 SERVICE_UUID: str = "569a1101-b87f-490c-92cb-11ba5ea5167c"
