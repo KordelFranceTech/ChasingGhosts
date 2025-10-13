@@ -98,7 +98,7 @@ class PlumeEnvironment3D(gym.Env):
 
 # --- Simple RL Training Loop (Q-Learning, Tabular) ---
 
-def train_agent(env, episodes=1000, alpha=0.1, gamma=0.9, epsilon=0.1):
+def train_agent(env, episodes=10, alpha=0.1, gamma=0.9, epsilon=0.1):
     q_table = np.zeros(env.grid_size + (env.action_space.n,))
 
     for ep in range(episodes):
