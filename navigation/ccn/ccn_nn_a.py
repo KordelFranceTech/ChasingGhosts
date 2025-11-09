@@ -9,11 +9,16 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
+
+EPISODES: int = 10000
+STEPS: int = 1000
+MAX_LAYERS: int = 7
+
 # ------------------------------
 # Environment
 # ------------------------------
 class GasWorld:
-    def __init__(self, size=20, source=(15, 15), diffusivity=0.05, wind=(0.01, 0.0)):
+    def __init__(self, size=20, source=(15, 15), diffusivity=0.005, wind=(0.01, 0.0)):
         self.size = size
         self.source = np.array(source, dtype=float)
         self.diffusivity = diffusivity
@@ -135,7 +140,7 @@ class NeuralModuleQLearner:
         self.td_window.append(abs(td_error.item()))
         return td_error.item()
 
-    def train_episode(self, env, max_steps=200):
+    def train_episode(self, env, max_steps=STEPS):
         state = env.reset()
         total_reward = 0
         for _ in range(max_steps):
@@ -190,13 +195,13 @@ class NeuralModuleQLearner:
 # ------------------------------
 # Experiment Example
 # ------------------------------
-def run_neural_experiment(episodes=300):
+def run_neural_experiment(episodes=EPISODES):
     env = GasWorld(size=20, source=(15,15))
     agent = NeuralModuleQLearner(
         input_dim=2, hidden_dim=16, output_dim=4,
         alpha=0.005, gamma=0.95, epsilon=0.1,
         grow_window=40, reward_var_thresh=0.03, td_instability_thresh=0.03,
-        max_layers=3, prune_interval=40, prune_threshold=0.005
+        max_layers=MAX_LAYERS, prune_interval=40, prune_threshold=0.005
     )
 
     rewards = []
@@ -220,7 +225,7 @@ if __name__ == "__main__":
 
 
     # --- Re-run the environment and neural agent for a single episode ---
-    def record_neural_path(agent, env, max_steps=200):
+    def record_neural_path(agent, env, max_steps=STEPS):
         state = env.reset()
         positions = [state * env.size]  # convert normalized state to grid position
         done = False

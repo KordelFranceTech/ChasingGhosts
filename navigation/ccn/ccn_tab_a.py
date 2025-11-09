@@ -14,9 +14,10 @@ from collections import deque, defaultdict
 import matplotlib.pyplot as plt
 
 
-EPISODES: int = 1500
+EPISODES: int = 10000
 STEPS: int = 2000
 MODULES: int = 10
+
 # ------------------------------
 # Environment (GasWorld)
 # ------------------------------

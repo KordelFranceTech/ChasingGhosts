@@ -218,10 +218,10 @@ def run_neural_experiment(episodes=300):
 if __name__ == "__main__":
 
     # --- Sweep parameters ---
-    growth_values = [0.01, 0.02, 0.03]  # reward variance threshold for growth
-    prune_values = [0.005, 0.01, 0.02]  # pruning threshold for neurons
-    episodes_per_run = 200
-    max_steps = 200
+    growth_values = [0.01, 0.02, 0.03, 0.07]  # reward variance threshold for growth
+    prune_values = [0.002, 0.005, 0.01, 0.02]  # pruning threshold for neurons
+    episodes_per_run = 2000
+    max_steps = 300
 
     # Store results
     results_mean_reward = np.zeros((len(growth_values), len(prune_values)))
