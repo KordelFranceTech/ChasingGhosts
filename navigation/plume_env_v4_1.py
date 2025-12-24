@@ -78,9 +78,9 @@ class PlumeEnv:
         prev_conc = self._get_concentration(self.uav_pos[0] - dx, self.uav_pos[1] - dy)
         curr_conc = self._get_concentration(*self.uav_pos)
         if curr_conc > 0:
-            reward += 0.1
-        if curr_conc > prev_conc:
             reward += 0.2
+        if curr_conc > prev_conc:
+            reward += 0.5
 
         return self._get_state(), reward, self.done
 
@@ -122,7 +122,14 @@ class PlumeEnv:
 
 # Q(λ) - Learning Agent with eligibility traces (Watkins' Q(λ) with replacing traces)
 class QLambdaAgent:
-    def __init__(self, num_states, num_actions, lr=0.1, gamma=0.8, epsilon=1.0, epsilon_decay=0.999, lambda_=0.8):
+    def __init__(self,
+                 num_states,
+                 num_actions,
+                 lr=0.1,
+                 gamma=0.8,
+                 epsilon=1.0,
+                 epsilon_decay=0.999,
+                 lambda_=0.8):
         self.q_table = np.zeros((num_states, num_actions))
         self.eligibility = np.zeros((num_states, num_actions))
         self.lr = lr
@@ -168,7 +175,8 @@ class ExpectedSarsaLambdaAgent:
         self.eligibility.fill(0)
 
     def decay_epsilon(self):
-        self.epsilon = max(0.01, self.epsilon * self.epsilon_decay)
+        # self.epsilon = max(0.01, self.epsilon * self.epsilon_decay)
+        self.epsilon *= self.epsilon_decay
 
     def update(self, state, action, reward, next_state, done):
         """Expected SARSA(λ) update with accumulating traces"""
@@ -194,7 +202,7 @@ class ExpectedSarsaLambdaAgent:
 
 
 # Training function (eligibility traces integrated here)
-def train_expected_sarsa(episodes=15000):
+def train_expected_sarsa(episodes=25000):
     env = PlumeEnv()
     agent = QLambdaAgent(num_states=9, num_actions=7)  # 9 states (3 plume x 3 grad), 7 actions
     reward_list: list = []
@@ -224,7 +232,7 @@ def train_expected_sarsa(episodes=15000):
     return agent, env
 
 
-def train_q_lambda(episodes=15000):
+def train_q_lambda(episodes=25000):
     env = PlumeEnv()
     agent = QLambdaAgent(num_states=9, num_actions=7)  # 9 states (3 plume x 3 grad), 7 actions
     reward_list: list = []

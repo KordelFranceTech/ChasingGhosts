@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import time
 import pandas as pd
 from djitellopy import Tello
@@ -157,7 +158,7 @@ if __name__ == "__main__":
 
     target_device = ble_utils.connect_to_sensor()
     if target_device is None:
-        jwoejoihjw
+        sys.exit()
     # time.sleep(constants.STEP_TIME)
 
     if constants.FLIGHT_MODE:
