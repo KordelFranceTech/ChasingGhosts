@@ -115,7 +115,7 @@ def command_loop_with_bout_detection():
     else:
         print("not moving...")
 
-    if float(UAV_IO_FRAME.iloc[0]["TOF_mm"]) > 0.18:
+    if float(UAV_IO_FRAME.iloc[0]["TOF_mm"]) > 0.14:
         if constants.FLIGHT_MODE:
             tello.move_forward(10)
             time.sleep(constants.STEP_TIME)
