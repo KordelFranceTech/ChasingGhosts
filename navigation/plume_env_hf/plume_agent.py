@@ -19,7 +19,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 # If your env lives in another file, import it:
-# from gaussian_plume_env import GaussianPlumeEnv, PlumeEnvConfig
+from plume_generator import GaussianPlumeEnv, PlumeEnvConfig
 
 # -------------------------------
 # Small convolutional Q-network

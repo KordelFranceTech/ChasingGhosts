@@ -287,6 +287,9 @@ if __name__ == "__main__":
     # To test: Reset env, use agent to navigate (choose actions greedily)
     plt.plot(reward_list_q)
     plt.plot(reward_list_ea)
-    plt.show()
     plt.title("Average Rewards Over Simulation Episodes")
+    plt.xlabel("Episodes")
+    plt.ylabel("Average Reward")
+    plt.legend(["Q(λ)", "Expected SARSA(λ)"])
+    plt.show()
 
