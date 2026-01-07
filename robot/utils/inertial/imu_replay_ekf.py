@@ -188,7 +188,7 @@ if __name__ == "__main__":
     # Put your JSON list into a file like imu_log.json
     # data = load_json_list("./imu_log.json")
     import imu_synth_data_generator
-    data = imu_synth_data_generator.generate_aggressive_log()
+    data = imu_synth_data_generator.generate_aggressive_log_with_wind()
 
     # If your TOF is already in meters, set tof_scale_m=1.0
     t, X = ekf_run(
