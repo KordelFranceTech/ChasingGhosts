@@ -202,7 +202,7 @@ class ExpectedSarsaLambdaAgent:
 
 
 # Training function (eligibility traces integrated here)
-def train_expected_sarsa(episodes=25000):
+def train_expected_sarsa(episodes=25000, should_plot=True):
     env = PlumeEnv()
     agent = QLambdaAgent(num_states=9, num_actions=7)  # 9 states (3 plume x 3 grad), 7 actions
     reward_list: list = []
@@ -226,13 +226,14 @@ def train_expected_sarsa(episodes=25000):
             print(f"Episode {ep}, Total Reward: {total_reward}, Epsilon: {agent.epsilon}")
         reward_list.append(total_reward)
 
-    plt.plot(reward_list)
-    plt.show()
+    if should_plot:
+        plt.plot(reward_list)
+        plt.show()
 
-    return agent, env
+    return agent, env, reward_list
 
 
-def train_q_lambda(episodes=25000):
+def train_q_lambda(episodes=25000, should_plot=True):
     env = PlumeEnv()
     agent = QLambdaAgent(num_states=9, num_actions=7)  # 9 states (3 plume x 3 grad), 7 actions
     reward_list: list = []
@@ -270,16 +271,22 @@ def train_q_lambda(episodes=25000):
             print(f"Episode {ep}, Total Reward: {total_reward}, Epsilon: {agent.epsilon}")
         reward_list.append(total_reward)
 
-    plt.plot(reward_list)
-    plt.show()
+    if should_plot:
+        plt.plot(reward_list)
+        plt.show()
 
-    return agent, env
+    return agent, env, reward_list
 
 
 # Run training
 if __name__ == "__main__":
-    agent, env = train_q_lambda()
-    # agent, env = train_expected_sarsa()
+    agent, env, reward_list_q = train_q_lambda()
+    agent, env, reward_list_ea = train_expected_sarsa()
     print("Q-Table:")
     print(agent.q_table)
     # To test: Reset env, use agent to navigate (choose actions greedily)
+    plt.plot(reward_list_q)
+    plt.plot(reward_list_ea)
+    plt.show()
+    plt.title("Average Rewards Over Simulation Episodes")
+
