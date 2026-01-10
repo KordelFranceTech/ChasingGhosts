@@ -2,6 +2,8 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
+import imu_plotting_utils as plt_utils
+
 
 def load_json_list(path: str):
     with open(path, "r") as f:
@@ -200,3 +202,6 @@ if __name__ == "__main__":
     )
 
     plot_3d_trajectory(X, title="EKF Estimated UAV Position (pos/vel/bias)")
+
+    walls = plt_utils.WALLS
+    plt_utils.plot_3d_walls_and_trajectory(X, walls)
