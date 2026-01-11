@@ -1,3 +1,5 @@
+import json
+import ast
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -47,6 +49,88 @@ WALLS = [
     {"p1": (12.0, 13.0), "p2": (12.0, 17.0)},
 ]
 
+def parse_until_delimiter(
+    filepath: str,
+    delimiter: str = "---"
+):
+    """
+    Reads a file line-by-line, parses dictionary-like rows until a delimiter
+    is encountered, and returns a list of dicts.
+
+    - Stops at the FIRST line containing the delimiter
+    - Safely parses JSON or Python-dict-style rows
+    - Ignores empty lines
+    """
+    records = []
+    with open(filepath, "r") as f:
+        for line_num, line in enumerate(f, start=1):
+            line = line.strip()
+
+            # Stop at delimiter
+            if line.startswith(delimiter):
+                break
+
+            # Skip empty lines
+            if not line:
+                continue
+
+            # Try JSON first, then Python literal
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError:
+                try:
+                    obj = ast.literal_eval(line)
+                except Exception as e:
+                    raise ValueError(
+                        f"Failed to parse line {line_num}: {line}\n{e}"
+                    )
+
+            if not isinstance(obj, dict):
+                raise ValueError(
+                    f"Line {line_num} parsed but is not a dict: {obj}"
+                )
+
+            records.append(obj)
+    return records
+
+
+def parse_bracketed_objects(filepath: str):
+    """
+    Reads a text file containing back-to-back bracketed dict-like objects,
+    splits on each closing bracket ']', converts them into dicts,
+    and returns a list of dicts (JSON-compatible).
+    """
+    with open(filepath, "r") as f:
+        raw = f.read().strip()
+    objects = []
+    buf = ""
+    depth = 0
+    count = 0
+
+    for ch in raw:
+        count += 1
+        if ch == "[":
+            depth += 1
+        if depth > 0:
+            buf += ch
+        if ch == "]":
+            depth -= 1
+            if depth == 0:
+                # Convert [ "a":1, "b":2 ] → { "a":1, "b":2 }
+                dict_str = "{" + buf[1:-1] + "}"
+
+                try:
+                    obj = ast.literal_eval(dict_str)
+                except Exception as e:
+                    raise ValueError(f"Failed to parse object:\n{dict_str}\n{e}")
+
+                if not isinstance(obj, dict):
+                    raise ValueError(f"Parsed object is not a dict: {obj}")
+                obj["time"] = count
+                objects.append(obj)
+                buf = ""
+    return objects
+
 
 def ccw(A, B, C):
     return (C[1]-A[1])*(B[0]-A[0]) > (B[1]-A[1])*(C[0]-A[0])
@@ -57,9 +141,7 @@ def segments_intersect(A, B, C, D):
 
 
 def plot_walls_and_trajectory(X, walls):
-
     plt.figure(figsize=(6,8))
-
     # walls
     for w in walls:
         x = [w["p1"][0], w["p2"][0]]
@@ -83,8 +165,8 @@ def plot_walls_and_trajectory(X, walls):
 def plot_3d_walls_and_trajectory(
     X,
     walls,
-    wall_height=3.0,   # meters (typical indoor ceiling)
-    wall_thickness=0.05
+    wall_height=0.2,   # meters (typical indoor ceiling)
+    wall_thickness=0.1
 ):
     """
     X: Nx3 UAV trajectory (meters)
