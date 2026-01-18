@@ -20,11 +20,7 @@ from typing import Optional, Tuple, List
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-
-try:
-    import matplotlib.pyplot as plt
-except Exception:
-    plt = None
+import matplotlib.pyplot as plt
 
 
 @dataclass
@@ -477,11 +473,11 @@ if __name__ == "__main__":
     print("Observation shape:", obs.shape)  # (C, H, W)
 
     # sample random actions for a few steps and render
-    for i in range(20):
+    for i in range(1000):
         action = env.action_space.sample()
         obs, rew, done, truncated, info = env.step(action)
         print(f"step {i} reward={rew:.3f} done={done}")
-        if i % 5 == 0:
+        if i % 100 == 0:
             env.render()
         if done:
             break
