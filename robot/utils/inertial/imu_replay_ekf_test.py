@@ -188,7 +188,7 @@ def plot_3d_trajectory(X, title="EKF Estimated UAV Position"):
 
 if __name__ == "__main__":
     # Put your JSON list into a file like imu_log.json
-    data = plt_utils.parse_bracketed_objects("/Users/kordelfrance/Documents/School/UTD/PhD Thesis/Ghosts/ChasingGhosts/robot/utils/inertial/OpuInertialJointData 3.txt.txt")
+    data = plt_utils.parse_bracketed_objects("/Users/kordelfrance/Documents/School/UTD/PhD Thesis/Ghosts/ChasingGhosts/robot/utils/inertial/OpuInertialJointData 6.txt.txt")
 
     # If your TOF is already in meters, set tof_scale_m=1.0
     t, X = ekf_run(
@@ -199,7 +199,7 @@ if __name__ == "__main__":
         vel_meas_gate=1e-6
     )
 
-    plot_3d_trajectory(X, title="EKF Estimated UAV Position (pos/vel/bias)")
+    plot_3d_trajectory(X, title="Estimated UAV Position")
 
     walls = plt_utils.WALLS
     plt_utils.plot_3d_walls_and_trajectory(X, walls)

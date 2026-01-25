@@ -2,6 +2,17 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
+WINDOW: int = 100
+EPOCHS: int = 10000
+LEARNING_RATE: float = 0.0001
+GAMMA: float = 0.9
+EPSILON: float = 1.0
+EPSILON_DECAY: float = 0.999
+LAMBDA: float = 0.8
+N_STATES: int = 9
+N_ACTIONS: int = 7
+USE_BLANKS: bool = True
+
 
 # Simple 2D grid environment for chemical plume tracking
 class PlumeEnv:
@@ -28,6 +39,13 @@ class PlumeEnv:
                     self.plume[x, y] = max(0, 10 - dist / 2)
                 else:
                     self.plume[x, y] = max(0, 5 - dist / 3)  # Weaker downwind
+
+        # Generate random blanks in 20% of the map
+        if USE_BLANKS:
+            for x in range(int(0.2*self.grid_size)):
+                x_rand: int = random.randint(0, self.grid_size - 1)
+                y_rand: int = random.randint(0, self.grid_size - 1)
+                self.plume[x_rand, y_rand] = 0
 
     def reset(self):
         self.uav_pos = (random.randint(0, self.grid_size - 1), random.randint(0, self.grid_size - 1))
@@ -123,13 +141,13 @@ class PlumeEnv:
 # Q(λ) - Learning Agent with eligibility traces (Watkins' Q(λ) with replacing traces)
 class QLambdaAgent:
     def __init__(self,
-                 num_states,
-                 num_actions,
-                 lr=0.1,
-                 gamma=0.8,
-                 epsilon=1.0,
-                 epsilon_decay=0.999,
-                 lambda_=0.8):
+                 num_states=N_STATES,
+                 num_actions=N_ACTIONS,
+                 lr=LEARNING_RATE,
+                 gamma=GAMMA,
+                 epsilon=EPSILON,
+                 epsilon_decay=EPSILON_DECAY,
+                 lambda_=LAMBDA):
         self.q_table = np.zeros((num_states, num_actions))
         self.eligibility = np.zeros((num_states, num_actions))
         self.lr = lr
@@ -155,7 +173,14 @@ class QLambdaAgent:
 # Agent: Expected SARSA(λ) with Eligibility Traces
 # ========================
 class ExpectedSarsaLambdaAgent:
-    def __init__(self, num_states=9, num_actions=7, lr=0.1, gamma=0.8, epsilon=1.0, epsilon_decay=0.999, lambda_=0.8):
+    def __init__(self,
+                 num_states=N_STATES,
+                 num_actions=N_ACTIONS,
+                 lr=LEARNING_RATE,
+                 gamma=GAMMA,
+                 epsilon=EPSILON,
+                 epsilon_decay=EPSILON_DECAY,
+                 lambda_=LAMBDA):
         self.q_table = np.zeros((num_states, num_actions))
         self.eligibility = np.zeros((num_states, num_actions))
         self.lr = lr
@@ -202,9 +227,8 @@ class ExpectedSarsaLambdaAgent:
 
 
 # Training function (eligibility traces integrated here)
-def train_expected_sarsa(episodes=25000, should_plot=True):
+def train_expected_sarsa(episodes=EPOCHS, should_plot=True):
     env = PlumeEnv()
-    agent = QLambdaAgent(num_states=9, num_actions=7)  # 9 states (3 plume x 3 grad), 7 actions
     reward_list: list = []
     agent = ExpectedSarsaLambdaAgent()
 
@@ -233,7 +257,7 @@ def train_expected_sarsa(episodes=25000, should_plot=True):
     return agent, env, reward_list
 
 
-def train_q_lambda(episodes=25000, should_plot=True):
+def train_q_lambda(episodes=EPOCHS, should_plot=True):
     env = PlumeEnv()
     agent = QLambdaAgent(num_states=9, num_actions=7)  # 9 states (3 plume x 3 grad), 7 actions
     reward_list: list = []
@@ -278,6 +302,16 @@ def train_q_lambda(episodes=25000, should_plot=True):
     return agent, env, reward_list
 
 
+def rolling_window(a, window):
+    pad = np.ones(len(a.shape), dtype=np.int32)
+    pad[-1] = window-1
+    pad = list(zip(pad, np.zeros(len(a.shape), dtype=np.int32)))
+    a = np.pad(a, pad,mode='reflect')
+    shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
+    strides = a.strides + (a.strides[-1],)
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
+
 # Run training
 if __name__ == "__main__":
     agent, env, reward_list_q = train_q_lambda()
@@ -285,11 +319,29 @@ if __name__ == "__main__":
     print("Q-Table:")
     print(agent.q_table)
     # To test: Reset env, use agent to navigate (choose actions greedily)
-    plt.plot(reward_list_q)
-    plt.plot(reward_list_ea)
+    # plt.plot(reward_list_q)
+    # plt.plot(reward_list_ea)
+
+    a_q = np.mean(rolling_window(np.array(reward_list_q), WINDOW), axis=-1)
+    # rolling var along last axis
+    b_q = np.sqrt(np.var(rolling_window(np.array(reward_list_q), WINDOW), axis=-1))
+    Q_MU_LOSSES = a_q
+    Q_SIGMA_LOSSES = b_q
+
+    a_ea = np.mean(rolling_window(np.array(reward_list_ea), WINDOW), axis=-1)
+    # rolling var along last axis
+    b_ea = np.sqrt(np.var(rolling_window(np.array(reward_list_ea), WINDOW), axis=-1))
+    EA_MU_LOSSES = a_ea
+    EA_SIGMA_LOSSES = b_ea
+
+    x = np.arange(len(reward_list_q))
+    plt.plot(x, Q_MU_LOSSES, 'r-', label="Q(λ")
+    plt.fill_between(x, Q_MU_LOSSES - Q_SIGMA_LOSSES, Q_MU_LOSSES + Q_SIGMA_LOSSES, color='r', alpha=0.2)
+    plt.plot(x, EA_MU_LOSSES, 'b-', label="Expected SARSA(λ)")
+    plt.fill_between(x, EA_MU_LOSSES - EA_SIGMA_LOSSES, EA_MU_LOSSES + EA_SIGMA_LOSSES, color='b', alpha=0.2)
     plt.title("Average Rewards Over Simulation Episodes")
     plt.xlabel("Episodes")
     plt.ylabel("Average Reward")
-    plt.legend(["Q(λ)", "Expected SARSA(λ)"])
+    plt.legend(["Q(λ) Mean", "Q(λ) Variance", "Expected SARSA(λ) Mean", "Expected SARSA(λ) Variance"])
     plt.show()
 

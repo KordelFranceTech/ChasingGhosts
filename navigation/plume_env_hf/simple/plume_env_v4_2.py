@@ -8,12 +8,12 @@ from matplotlib.collections import LineCollection
 # Environment (unchanged)
 # -------------------------------------------------
 class PlumeEnv:
-    def __init__(self, grid_size=20, source_pos=(15, 15)):
+    def __init__(self, grid_size=16, source_pos=(15, 15)):
         self.grid_size = grid_size
         self.source_pos = source_pos
-        self.uav_pos = (5, 5)
+        self.uav_pos = (1, 1)
         self.done = False
-        self.max_steps = 200
+        self.max_steps = 400
         self.steps = 0
         self.plume = np.zeros((grid_size, grid_size))
         self._generate_plume()
@@ -26,6 +26,12 @@ class PlumeEnv:
                     self.plume[x, y] = max(0, 10 - dist / 2)
                 else:
                     self.plume[x, y] = max(0, 5 - dist / 3)
+
+        # Generate random blanks in 20% of the map
+        for x in range(int(0.2*self.grid_size)):
+            x_rand: int = random.randint(0, self.grid_size - 1)
+            y_rand: int = random.randint(0, self.grid_size - 1)
+            self.plume[x_rand, y_rand] = 0
 
     def reset(self):
         self.uav_pos = (random.randint(0, self.grid_size-1),
@@ -185,8 +191,8 @@ class ExpectedSarsaLambdaAgent:
 # -------------------------------------------------
 def train(episodes=2000):
     env = PlumeEnv()
-    agent = ExpectedSarsaLambdaAgent()
-    # agent = QLambdaAgent()
+    # agent = ExpectedSarsaLambdaAgent()
+    agent = QLambdaAgent()
     reward_list: list = []
 
     for ep in range(episodes):
@@ -260,7 +266,7 @@ def visualise(agent, env, path):
 
     # ---- 2. Q-values per state -------------------------------------------------
     ax2 = fig.add_subplot(1, 2, 2)
-    actions_names = ["Fwd", "L-45°", "R-45°", "Hard-L", "Hard-R", "Zig-L", "Zig-R"]
+    actions_names = ["Fwd", "L-45°", "R-45°", "Hard-L", "Hard-R", "Cast-L", "Cast-R"]
     x = np.arange(agent.q_table.shape[0])
     width = 0.12
     for a in range(agent.q_table.shape[1]):
@@ -282,7 +288,7 @@ def visualise(agent, env, path):
 # -------------------------------------------------
 if __name__ == "__main__":
     print("Training Expected SARSA(λ)...")
-    trained_agent, trained_env = train(episodes=10000)
+    trained_agent, trained_env = train(episodes=1000)
 
     print("\nRunning greedy test episode...")
     path, _, _ = test_and_collect_path(trained_agent, trained_env)
