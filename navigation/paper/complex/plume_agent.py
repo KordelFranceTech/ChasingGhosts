@@ -18,11 +18,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-# If your env lives in another file, import it:
-from plume_generator import GaussianPlumeEnv, PlumeEnvConfig
+# Note you can use either a plume env with or without obstacles...
+# from navigation.paper.complex.plume_env import GaussianPlumeEnv, PlumeConfig
+from navigation.paper.complex.plume_env_with_obstacles import GaussianPlumeEnv, PlumeEnvConfig
 
 # -------------------------------
-# Small convolutional Q-network
+# Small convolutional Q-network, but any will do
 # -------------------------------
 class ConvQNetwork(nn.Module):
     def __init__(self, in_channels: int, n_actions: int):

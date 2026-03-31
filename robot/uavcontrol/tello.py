@@ -1,4 +1,5 @@
-"""Library for interacting with DJI Ryze Tello drones.
+"""
+Library for interacting with DJI Ryze Tello drones.
 """
 
 # coding=utf-8

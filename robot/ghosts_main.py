@@ -180,15 +180,15 @@ def navigate_to_door():
 
 if __name__ == "__main__":
 
-    # target_device = ble_utils.connect_to_sensor()
-    # if target_device is None:
-    #     sys.exit()
-    # time.sleep(constants.STEP_TIME)
+    target_device = ble_utils.connect_to_sensor()
+    if target_device is None:
+        sys.exit()
+    time.sleep(constants.STEP_TIME)
 
     if constants.FLIGHT_MODE:
         tello = Tello()
         tello.connect()
-        # time.sleep(constants.STEP_TIME)
+        time.sleep(constants.STEP_TIME)
         tello.takeoff()
         time.sleep(constants.STEP_TIME)
         tello.move_forward(565)
@@ -202,76 +202,3 @@ if __name__ == "__main__":
         tello.move_forward(343)
         time.sleep(constants.STEP_TIME)
         tello.land()
-        # tello.stream_on()
-        # for i in range(0,len(course_commands)):
-        #     tello.send_control_command(f"{course_commands[i]}")
-        #     time.sleep(constants.STEP_TIME)
-# if __name__ == "__main__":
-#
-#     target_device = ble_utils.connect_to_sensor()
-#     if target_device is None:
-#         sys.exit()
-#     # time.sleep(constants.STEP_TIME)
-#
-#     if constants.FLIGHT_MODE:
-#         tello = Tello()
-#         tello.connect()
-#         # tello.stream_on()
-#         tello.takeoff()
-#         time.sleep(constants.STEP_TIME)
-#
-#         # Health check
-#         tello.rotate_clockwise(90)
-#         time.sleep(constants.STEP_TIME)
-#         tello.rotate_counter_clockwise(90)
-#         time.sleep(constants.STEP_TIME)
-#         tello.move_forward(10)
-#         time.sleep(constants.STEP_TIME)
-#         tello.move_back(10)
-#         time.sleep(constants.STEP_TIME)
-#     else:
-#         print("\n----INIT----")
-#         print("tello = Tello()")
-#         print("tello.connect()")
-#         print("tello.stream_on()")
-#         print("tello.takeoff()")
-#         time.sleep(constants.STEP_TIME)
-#
-#         # Health check
-#         print("\n------HEALTH CHECK----")
-#         print("tello.rotate_clockwise(90)")
-#         print("tello.rotate_counter_clockwise(90)")
-#         print("tello.move_forward(10)")
-#         print("tello.move_back(10)")
-#         time.sleep(constants.STEP_TIME)
-#
-#     # Sample twice to build enough bank for bout detection
-#     if target_device is not None:
-#         asyncio.run(ble_utils.async_sample_from_device(target_device))
-#         asyncio.run(ble_utils.async_sample_from_device(target_device))
-#
-#
-#     for i in range(20):
-#         print(f"\n-----COMMAND LOOP {i + 1}-----")
-#         # ble_utils.connect_to_sensor()
-#         if target_device is not None:
-#             asyncio.run(ble_utils.async_sample_from_device(target_device))
-#         else:
-#             break
-#         if not constants.DEBUG_MODE:
-#             # # Check for nearest door
-#             # navigate_to_door()
-#             # Sample olfaction sensors and make decisions
-#             # command_loop()
-#             command_loop_with_bout_detection()
-#         time.sleep(constants.STEP_TIME)
-#
-#     if constants.FLIGHT_MODE:
-#         tello.land()
-#         # if tello.stream_on:
-#         #     tello.streamoff()
-#         tello.end()
-#
-#
-#
-#

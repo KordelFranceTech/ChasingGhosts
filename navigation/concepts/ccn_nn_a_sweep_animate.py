@@ -12,7 +12,7 @@ import matplotlib.animation as animation
 # ------------------------------
 # Environment
 # ------------------------------
-class GasWorld:
+class LightweightPlumEnv:
     def __init__(self, size=20, source=(15, 15), diffusivity=0.05, wind=(0.01, 0.0)):
         self.size = size
         self.source = np.array(source, dtype=float)
@@ -191,7 +191,7 @@ class NeuralModuleQLearner:
 # Experiment Example
 # ------------------------------
 def run_neural_experiment(episodes=300):
-    env = GasWorld(size=20, source=(15,15))
+    env = LightweightPlumEnv(size=20, source=(15,15))
     agent = NeuralModuleQLearner(
         input_dim=2, hidden_dim=16, output_dim=4,
         alpha=0.005, gamma=0.95, epsilon=0.1,
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     for i, gth in enumerate(growth_values):
         for j, pth in enumerate(prune_values):
             print(f"Running growth={gth}, prune={pth}")
-            env = GasWorld(size=20, source=(15,15))
+            env = LightweightPlumEnv(size=20, source=(15,15))
             agent = NeuralModuleQLearner(
                 input_dim=2, hidden_dim=16, output_dim=4,
                 alpha=0.005, gamma=0.95, epsilon=0.1,
