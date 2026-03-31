@@ -11,3 +11,10 @@ In `uav_main.py`, I instruct the Tello UAV to connect with the OPU over Bluetoot
 The code sends and receives control commands to the Tello over local area network connection.
 Through this connection, it can also stream images from the camera as well as other telemetry.
 It sends and recieves olfaction data over Bluetooth connection.
+
+The COLIP embeddings (or olfaction-vision-language model) associated with the paper can be found here on HuggingFace: https://huggingface.co/kordelfrance/Olfaction-Vision-Language-Embeddings.
+The specific variant of the model I use from this HuggingFace repository can be found here: https://huggingface.co/kordelfrance/Olfaction-Vision-Language-Embeddings/tree/main/model/colip-small/base
+
+The YOLO model I use for fast updates mentioned in the paper can be found within the `./models` subdirectory of this repository here.
+
+The reinforcement learning model is trained in navigation/paper/simple/plume_env_v4_1.py, and a policy is output that is used in the paper.
