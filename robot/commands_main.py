@@ -17,14 +17,16 @@ Used to test battery longevity.
 """
 course_commands: list = [
         "takeoff",
-        "forward 565",
+        "forward 500",  # split from 565
+        "forward 65",
         "cw 90",
         "forward 400",
         "ccw 90",
         "forward 343",
         "cw 90",
         "forward 154",
-        "forward 700",
+        "forward 500",  # split from 700
+        "forward 200",
         "forward 170",
         "ccw 90",
         "forward 145",
@@ -180,30 +182,54 @@ def navigate_to_door():
 
 if __name__ == "__main__":
 
-    target_device = ble_utils.connect_to_sensor()
-    if target_device is None:
-        sys.exit()
+    # target_device = ble_utils.connect_to_sensor()
+    # if target_device is None:
+    #     sys.exit()
     time.sleep(constants.STEP_TIME)
 
     if constants.FLIGHT_MODE:
         tello = Tello()
         tello.connect()
         time.sleep(constants.STEP_TIME)
+        battery = tello.get_battery()
+        state = tello.get_current_state()
+        temp_high = state.get('temph', 0)
+        print(f"Battery: {battery}%")
+        print(f"Pitch: {state.get('pitch')}  Roll: {state.get('roll')}  Yaw: {state.get('yaw')}")
+        print(f"Height: {state.get('h')}  ToF: {state.get('tof')}  Temp: {state.get('templ')}-{temp_high}C")
+        if battery < 20:
+            print("Battery too low to fly safely. Charge the Tello and try again.")
+            sys.exit()
+        if temp_high > 85:
+            print(f"Tello is overheated ({temp_high}C). Power off and let it cool for 10-15 minutes.")
+            sys.exit()
         tello.takeoff()
         time.sleep(constants.STEP_TIME)
         try:
-            # Tello move commands are capped at 500 cm — split 565 into two legs
-            tello.move_forward(495)
-            time.sleep(constants.STEP_TIME)
-            tello.move_forward(70)
+            tello.move_forward(100)
             time.sleep(constants.STEP_TIME)
             tello.rotate_clockwise(90)
             time.sleep(constants.STEP_TIME)
-            tello.move_forward(400)
+            tello.rotate_counter_clockwise(270)
             time.sleep(constants.STEP_TIME)
-            tello.rotate_counter_clockwise(90)
+            tello.move_forward(100)
             time.sleep(constants.STEP_TIME)
-            tello.move_forward(343)
-            time.sleep(constants.STEP_TIME)
+            ## Tello move commands are capped at 500 cm — split 565 into two legs
+            # tello.move_forward(495)
+            # time.sleep(constants.STEP_TIME)
+            # tello.move_forward(70)
+            # time.sleep(constants.STEP_TIME)
+            # tello.rotate_clockwise(90)
+            # time.sleep(constants.STEP_TIME)
+            # tello.move_forward(400)
+            # time.sleep(constants.STEP_TIME)
+            # tello.rotate_counter_clockwise(90)
+            # time.sleep(constants.STEP_TIME)
+            # tello.move_forward(343)
+            # time.sleep(constants.STEP_TIME)
         finally:
-            tello.land()
+            try:
+                tello.land()
+            except Exception:
+                # Motors already stopped (e.g. motor stop safety trigger); drone is grounded
+                pass
