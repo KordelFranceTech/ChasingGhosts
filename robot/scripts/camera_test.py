@@ -36,7 +36,7 @@ for i in range(10):
     # results = model("../images/door_test.jpg")  # Predict on an image
     results = model("test_image.png")  # Predict on an image
     print(results[0])
-    print("----")
+    print("****")
     print(results)
     results[0].show()  # Display results
     time.sleep(10)

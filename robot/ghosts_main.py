@@ -254,6 +254,34 @@ def check_source_acceptance(concentration_history: list) -> bool:
 
 # ── Action Execution ──────────────────────────────────────────────────────────
 
+def stable_rotate(degrees: int, clockwise: bool, step: int = 30, settle_threshold: int = 3, settle_timeout: float = 3.0):
+    """Rotate in small increments and wait for IMU to settle between steps.
+    Avoids 'no valid IMU' errors caused by payload-induced vibration during
+    high-angular-acceleration single-command rotations.
+    Args:
+        degrees: total rotation in degrees (positive integer)
+        clockwise: True for CW, False for CCW
+        step: degrees per increment (smaller = gentler, slower)
+        settle_threshold: max abs pitch/roll in degrees before proceeding
+        settle_timeout: seconds to wait for settle before giving up
+    """
+    remaining = degrees
+    while remaining > 0:
+        increment = min(step, remaining)
+        if clockwise:
+            tello.rotate_clockwise(increment)
+        else:
+            tello.rotate_counter_clockwise(increment)
+        remaining -= increment
+        deadline = time.time() + settle_timeout
+        while time.time() < deadline:
+            s = tello.get_current_state()
+            if abs(s.get('pitch', 99)) <= settle_threshold and abs(s.get('roll', 99)) <= settle_threshold:
+                break
+            time.sleep(0.1)
+        time.sleep(0.5)
+
+
 def execute_action(action: str, tof_m: float):
     """
     Execute a navigation action.
@@ -276,19 +304,19 @@ def execute_action(action: str, tof_m: float):
     if action == "surge":
         _fwd()
     elif action == "turn_left_soft":
-        _cmd("tello.rotate_counter_clockwise(45)", lambda: tello.rotate_counter_clockwise(45))
+        _cmd("stable_rotate(45, clockwise=False)", lambda: stable_rotate(45, clockwise=False))
     elif action == "turn_right_soft":
-        _cmd("tello.rotate_clockwise(45)", lambda: tello.rotate_clockwise(45))
+        _cmd("stable_rotate(45, clockwise=True)", lambda: stable_rotate(45, clockwise=True))
     elif action == "turn_left_hard":
-        _cmd("tello.rotate_counter_clockwise(90)", lambda: tello.rotate_counter_clockwise(90))
+        _cmd("stable_rotate(90, clockwise=False)", lambda: stable_rotate(90, clockwise=False))
     elif action == "turn_right_hard":
-        _cmd("tello.rotate_clockwise(90)", lambda: tello.rotate_clockwise(90))
+        _cmd("stable_rotate(90, clockwise=True)", lambda: stable_rotate(90, clockwise=True))
     elif action in ("cast_left", "cast_right"):
         # Casting: turn 45° then move forward to sweep and relocate the plume
         if action == "cast_left":
-            _cmd("tello.rotate_counter_clockwise(45)", lambda: tello.rotate_counter_clockwise(45))
+            _cmd("stable_rotate(45, clockwise=False)", lambda: stable_rotate(45, clockwise=False))
         else:
-            _cmd("tello.rotate_clockwise(45)", lambda: tello.rotate_clockwise(45))
+            _cmd("stable_rotate(45, clockwise=True)", lambda: stable_rotate(45, clockwise=True))
         time.sleep(constants.STEP_TIME)
         _fwd()
     elif action == "land":
@@ -418,11 +446,11 @@ if __name__ == "__main__":
         tello.takeoff()
         time.sleep(constants.STEP_TIME)
     else:
-        print("\n---- INIT (DRY RUN) ----")
+        print("\n**** INIT (DRY RUN) ****")
         print("tello.connect() | tello.stream_on() | tello.takeoff()")
 
     # Prime the sensor buffer — need ≥2 samples before bout detection is valid
-    print("\n---- PRIMING SENSOR BUFFER ----")
+    print("\n**** PRIMING SENSOR BUFFER ****")
     asyncio.run(ble_utils.async_sample_from_device(target_device))
     time.sleep(constants.STEP_TIME)
     asyncio.run(ble_utils.async_sample_from_device(target_device))
@@ -448,5 +476,5 @@ if __name__ == "__main__":
             tello.streamoff()
             tello.end()
         else:
-            print("\n---- SHUTDOWN (DRY RUN) ----")
+            print("\n**** SHUTDOWN (DRY RUN) ****")
             print("tello.land() | tello.streamoff() | tello.end()")

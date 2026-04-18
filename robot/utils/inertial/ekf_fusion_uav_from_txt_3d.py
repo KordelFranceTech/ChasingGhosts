@@ -360,7 +360,7 @@ def main():
         hxDR = np.hstack((hxDR, xDR))
         hxTrue = np.hstack((hxTrue, xTrue))
 
-    # ---- 3D Plot ----
+    # **** 3D Plot ****
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
 

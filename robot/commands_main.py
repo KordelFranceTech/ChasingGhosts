@@ -1,4 +1,5 @@
 import asyncio
+import math
 import sys
 import time
 import pandas as pd
@@ -203,14 +204,41 @@ if __name__ == "__main__":
         if temp_high > 85:
             print(f"Tello is overheated ({temp_high}C). Power off and let it cool for 10-15 minutes.")
             sys.exit()
+        def stable_rotate(degrees: int, clockwise: bool, step: int = 30, settle_threshold: int = 3, settle_timeout: float = 3.0):
+            """Rotate in small increments and wait for IMU to settle between steps.
+            Avoids 'no valid IMU' errors caused by payload-induced vibration during
+            high-angular-acceleration single-command rotations.
+            Args:
+                degrees: total rotation in degrees (positive integer)
+                clockwise: True for CW, False for CCW
+                step: degrees per increment (smaller = gentler, slower)
+                settle_threshold: max abs pitch/roll in degrees before proceeding
+                settle_timeout: seconds to wait for settle before giving up
+            """
+            remaining = degrees
+            while remaining > 0:
+                increment = min(step, remaining)
+                if clockwise:
+                    tello.rotate_clockwise(increment)
+                else:
+                    tello.rotate_counter_clockwise(increment)
+                remaining -= increment
+                deadline = time.time() + settle_timeout
+                while time.time() < deadline:
+                    s = tello.get_current_state()
+                    if abs(s.get('pitch', 99)) <= settle_threshold and abs(s.get('roll', 99)) <= settle_threshold:
+                        break
+                    time.sleep(0.1)
+                time.sleep(0.5)
+
         tello.takeoff()
         time.sleep(constants.STEP_TIME)
         try:
             tello.move_forward(100)
             time.sleep(constants.STEP_TIME)
-            tello.rotate_clockwise(90)
+            stable_rotate(90, clockwise=True)
             time.sleep(constants.STEP_TIME)
-            tello.rotate_counter_clockwise(270)
+            stable_rotate(270, clockwise=False)
             time.sleep(constants.STEP_TIME)
             tello.move_forward(100)
             time.sleep(constants.STEP_TIME)

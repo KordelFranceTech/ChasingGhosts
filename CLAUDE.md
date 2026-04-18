@@ -18,3 +18,6 @@ The specific variant of the model I use from this HuggingFace repository can be 
 The YOLO model I use for fast updates mentioned in the paper can be found within the `./models` subdirectory of this repository here.
 
 The reinforcement learning model is trained in navigation/paper/simple/plume_env_v4_1.py, and a policy is output that is used in the paper.
+
+The `./simulink` subdirectory contains files for a physics simulation of a UAV. 
+It is not required to run any of the python files and is included only as supplementary material for the paper.

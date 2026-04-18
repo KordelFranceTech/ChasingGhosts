@@ -2,9 +2,9 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ----------------------------
+# ****************************
 # Load JSON data
-# ----------------------------
+# ****************************
 
 with open("./imu_log.json", "r") as f:
     data = json.load(f)
@@ -15,9 +15,9 @@ vgx  = np.array([d["vgx"] for d in data])
 vgy  = np.array([d["vgy"] for d in data])
 vgz  = np.array([d["vgz"] for d in data])
 
-# ----------------------------
+# ****************************
 # Integrate velocity → position
-# ----------------------------
+# ****************************
 
 x = np.zeros(len(time))
 y = np.zeros(len(time))
@@ -30,9 +30,9 @@ for i in range(1, len(time)):
     y[i] = y[i - 1] + vgy[i] * dt
     z[i] = z[i - 1] + vgz[i] * dt
 
-# ----------------------------
+# ****************************
 # Plot 3D Trajectory
-# ----------------------------
+# ****************************
 
 fig = plt.figure(figsize=(8, 6))
 ax = fig.add_subplot(111, projection="3d")

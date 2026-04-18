@@ -34,7 +34,7 @@ def ekf_run(data,
       z_tof = z (from tof if enabled)
     """
 
-    # ---- Extract signals ----
+    # **** Extract signals ****
     t = as_array(data, "time")
     if np.any(np.diff(t) <= 0):
         raise ValueError("Time must be strictly increasing.")
@@ -53,7 +53,7 @@ def ekf_run(data,
 
     n = len(t)
 
-    # ---- EKF init ----
+    # **** EKF init ****
     xhat = np.zeros(9)  # start at origin, zero velocity, zero bias
 
     # Covariance (tune these!)
@@ -81,7 +81,7 @@ def ekf_run(data,
     for k in range(1, n):
         dt = t[k] - t[k - 1]
 
-        # ---- Predict step ----
+        # **** Predict step ****
         # State transition Jacobian F
         F = np.eye(9)
         # x depends on v
@@ -121,7 +121,7 @@ def ekf_run(data,
 
         P = F @ P @ F.T + Q
 
-        # ---- Update step(s) ----
+        # **** Update step(s) ****
         # 1) Velocity measurement update (if enabled and meaningful)
         if use_velocity_meas:
             z = np.array([vgx[k], vgy[k], vgz[k]], dtype=float)

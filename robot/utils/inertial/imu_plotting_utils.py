@@ -176,9 +176,9 @@ def plot_3d_walls_and_trajectory(
     fig = plt.figure(figsize=(9, 7))
     ax = fig.add_subplot(111, projection="3d")
 
-    # -------------------------
+    # ************************-
     # Draw walls as vertical quads
-    # -------------------------
+    # ************************-
     for w in walls:
         x1, y1 = w["p1"]
         x2, y2 = w["p2"]
@@ -205,9 +205,9 @@ def plot_3d_walls_and_trajectory(
         )
         ax.add_collection3d(wall_poly)
 
-    # -------------------------
+    # ************************-
     # Plot UAV trajectory
-    # -------------------------
+    # ************************-
     ax.plot(
         X[:, 0],
         X[:, 1],
@@ -220,9 +220,9 @@ def plot_3d_walls_and_trajectory(
     ax.scatter(X[0, 0], X[0, 1], X[0, 2], color="green", s=50, label="Start")
     ax.scatter(X[-1, 0], X[-1, 1], X[-1, 2], color="blue", s=50, label="End")
 
-    # -------------------------
+    # ************************-
     # Axes + view
-    # -------------------------
+    # ************************-
     ax.set_xlabel("X (m)")
     ax.set_ylabel("Y (m)")
     ax.set_zlabel("Z (m)")

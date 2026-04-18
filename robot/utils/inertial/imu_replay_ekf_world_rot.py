@@ -2,9 +2,9 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-# -------------------------
+# ************************-
 # Rotation utilities
-# -------------------------
+# ************************-
 
 def rot_x(phi):
     c, s = np.cos(phi), np.sin(phi)
@@ -27,9 +27,9 @@ def rot_z(psi):
 def body_to_world_rotation(roll, pitch, yaw):
     return rot_z(yaw) @ rot_y(pitch) @ rot_x(roll)
 
-# -------------------------
+# ************************-
 # EKF
-# -------------------------
+# ************************-
 
 def ekf_run(data, tof_scale_m=0.01):
     g = 9.80665
@@ -121,9 +121,9 @@ def ekf_run(data, tof_scale_m=0.01):
 
     return X
 
-# -------------------------
+# ************************-
 # Plot
-# -------------------------
+# ************************-
 
 def plot_trajectory(X):
     fig = plt.figure(figsize=(8,6))

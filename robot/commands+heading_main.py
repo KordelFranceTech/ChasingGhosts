@@ -8,7 +8,7 @@ from djitellopy import Tello
 from utils import ble_utils, ml_utils
 import constants
 
-
+COURSE_CAL_NOISE: bool = True
 os_l_list: list = []
 os_r_list: list = []
 
@@ -18,14 +18,16 @@ Used to test battery longevity.
 """
 course_commands: list = [
         "takeoff",
-        "forward 565",
+        "forward 500",  # split from 565
+        "forward 65",
         "cw 90",
         "forward 400",
         "ccw 90",
         "forward 343",
         "cw 90",
         "forward 154",
-        "forward 700",
+        "forward 500",  # split from 700
+        "forward 200",
         "forward 170",
         "ccw 90",
         "forward 145",
@@ -36,6 +38,20 @@ course_commands: list = [
         "land",
         ]
 
+course_cal_vals: list = [
+    335,
+    90,
+    154,
+    499,
+    200,
+    165,
+    90,
+    155,
+    90,
+    499,
+    90,
+    120
+]
 
 """
 Data I/O example:
@@ -181,15 +197,31 @@ def navigate_to_door():
 
 if __name__ == "__main__":
 
-    target_device = ble_utils.connect_to_sensor()
-    if target_device is None:
-        sys.exit()
+    # target_device = ble_utils.connect_to_sensor()
+    # if target_device is None:
+    #     sys.exit()
     time.sleep(constants.STEP_TIME)
 
     if constants.FLIGHT_MODE:
         tello = Tello()
         tello.connect()
         time.sleep(constants.STEP_TIME)
+        battery = tello.get_battery()
+        state = tello.get_current_state()
+        temp_high = state.get('temph', 0)
+        print(f"Battery: {battery}%")
+        print(f"Pitch: {state.get('pitch')}  Roll: {state.get('roll')}  Yaw: {state.get('yaw')}")
+        print(f"Height: {state.get('h')}  ToF: {state.get('tof')}  Temp: {state.get('templ')}-{temp_high}C")
+        if battery < 20:
+            print("Battery too low to fly safely. Charge the Tello and try again.")
+            sys.exit()
+        if temp_high > 85:
+            print(f"Tello is overheated ({temp_high}C). Power off and let it cool for 10-15 minutes.")
+            sys.exit()
+        # Record heading before takeoff as the reference for the entire flight
+        baseline_yaw = tello.get_current_state().get('yaw', 0)
+        print(f"Baseline heading: {baseline_yaw} deg")
+
         def stable_rotate(degrees: int, clockwise: bool, step: int = 30, settle_threshold: int = 3, settle_timeout: float = 3.0):
             """Rotate in small increments and wait for IMU to settle between steps.
             Avoids 'no valid IMU' errors caused by payload-induced vibration during
@@ -209,102 +241,147 @@ if __name__ == "__main__":
                 else:
                     tello.rotate_counter_clockwise(increment)
                 remaining -= increment
+                # Wait for pitch and roll to settle toward zero
                 deadline = time.time() + settle_timeout
                 while time.time() < deadline:
                     s = tello.get_current_state()
-                    if abs(s.get('pitch', 99)) <= settle_threshold and abs(s.get('roll', 99)) <= settle_threshold:
+                    pitch = abs(s.get('pitch', 99))
+                    roll = abs(s.get('roll', 99))
+                    if pitch <= settle_threshold and roll <= settle_threshold:
                         break
                     time.sleep(0.1)
-                time.sleep(0.5)
+                time.sleep(0.5)  # brief pause after settle before next increment
+
+        def heading_drift_correction():
+            """Check yaw drift against baseline. If >5 deg, correct laterally."""
+            current_yaw = tello.get_current_state().get('yaw', 0)
+            # Compute signed angular difference in [-180, 180]
+            drift = (current_yaw - baseline_yaw + 180) % 360 - 180
+            print(f"Heading check — baseline: {baseline_yaw} deg, current: {current_yaw} deg, drift: {drift:.1f} deg")
+            if abs(drift) > 5:
+                # Convert drift angle to a lateral displacement in cm.
+                # For small angles this is approximately: displacement = distance * sin(drift).
+                # We use a fixed reference distance of 100 cm to get a proportional correction.
+                correction_cm = int(abs(100 * math.sin(math.radians(drift))))
+                correction_cm = max(20, min(correction_cm, 500))  # clamp to valid Tello range
+                if drift > 0:
+                    # Drifted clockwise — move left to compensate
+                    print(f"Correcting {drift:.1f} deg drift: move_left({correction_cm} cm)")
+                    tello.move_left(correction_cm)
+                else:
+                    # Drifted counter-clockwise — move right to compensate
+                    print(f"Correcting {drift:.1f} deg drift: move_right({correction_cm} cm)")
+                    tello.move_right(correction_cm)
+                time.sleep(constants.STEP_TIME)
 
         tello.takeoff()
         time.sleep(constants.STEP_TIME)
+        count: int = 0
         try:
-            tello.move_forward(495)
+            # From hallway facing west
+            tello.move_forward(343)
             time.sleep(constants.STEP_TIME)
-            tello.move_forward(70)
+            tello.move_forward(167)
             time.sleep(constants.STEP_TIME)
-            stable_rotate(90, clockwise=True)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(65)
+            time.sleep(constants.STEP_TIME)
+            tello.rotate_clockwise(90)
             time.sleep(constants.STEP_TIME)
             tello.move_forward(400)
             time.sleep(constants.STEP_TIME)
+            tello.rotate_counter_clockwise(90)
+            # From doorway facing west
+            heading_drift_correction()
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(120)
+            time.sleep(constants.STEP_TIME)
+            heading_drift_correction()
+            if COURSE_CAL_NOISE:
+                tello.move_forward(40)
+                time.sleep(constants.STEP_TIME)
+                tello.rotate_clockwise(90)
+                time.sleep(constants.STEP_TIME)
+                tello.move_forward(40)
+                time.sleep(constants.STEP_TIME)
+                tello.rotate_clockwise(90)
+                time.sleep(constants.STEP_TIME)
+                tello.move_forward(40)
+                time.sleep(constants.STEP_TIME)
+                tello.rotate_clockwise(90)
+                time.sleep(constants.STEP_TIME)
+                tello.rotate_clockwise(90)
+                time.sleep(constants.STEP_TIME)
+            stable_rotate(90, clockwise=True)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(154)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(100)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(200)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(165)
+            time.sleep(constants.STEP_TIME)
             stable_rotate(90, clockwise=False)
             time.sleep(constants.STEP_TIME)
-            tello.move_forward(343)
+            tello.move_forward(155)
             time.sleep(constants.STEP_TIME)
+            if COURSE_CAL_NOISE:
+                tello.move_forward(55)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+                tello.move_forward(55)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+            stable_rotate(90, clockwise=True)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(500)
+            time.sleep(constants.STEP_TIME)
+            stable_rotate(90, clockwise=False)
+            time.sleep(constants.STEP_TIME)
+            tello.move_forward(120)
+            time.sleep(constants.STEP_TIME)
+
+            if COURSE_CAL_NOISE:
+                tello.move_forward(35)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+                tello.move_forward(35)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+                stable_rotate(90, clockwise=True)
+                time.sleep(constants.STEP_TIME)
+
         finally:
-            tello.land()
-        # tello.stream_on()
-        # for i in range(0,len(course_commands)):
-        #     tello.send_control_command(f"{course_commands[i]}")
-        #     time.sleep(constants.STEP_TIME)
-        
-# if __name__ == "__main__":
-#
-#     target_device = ble_utils.connect_to_sensor()
-#     if target_device is None:
-#         sys.exit()
-#     # time.sleep(constants.STEP_TIME)
-#
-#     if constants.FLIGHT_MODE:
-#         tello = Tello()
-#         tello.connect()
-#         # tello.stream_on()
-#         tello.takeoff()
-#         time.sleep(constants.STEP_TIME)
-#
-#         # Health check
-#         tello.rotate_clockwise(90)
-#         time.sleep(constants.STEP_TIME)
-#         tello.rotate_counter_clockwise(90)
-#         time.sleep(constants.STEP_TIME)
-#         tello.move_forward(10)
-#         time.sleep(constants.STEP_TIME)
-#         tello.move_back(10)
-#         time.sleep(constants.STEP_TIME)
-#     else:
-#         print("\n****INIT****")
-#         print("tello = Tello()")
-#         print("tello.connect()")
-#         print("tello.stream_on()")
-#         print("tello.takeoff()")
-#         time.sleep(constants.STEP_TIME)
-#
-#         # Health check
-#         print("\n****--HEALTH CHECK****")
-#         print("tello.rotate_clockwise(90)")
-#         print("tello.rotate_counter_clockwise(90)")
-#         print("tello.move_forward(10)")
-#         print("tello.move_back(10)")
-#         time.sleep(constants.STEP_TIME)
-#
-#     # Sample twice to build enough bank for bout detection
-#     if target_device is not None:
-#         asyncio.run(ble_utils.async_sample_from_device(target_device))
-#         asyncio.run(ble_utils.async_sample_from_device(target_device))
-#
-#
-#     for i in range(20):
-#         print(f"\n****-COMMAND LOOP {i + 1}****-")
-#         # ble_utils.connect_to_sensor()
-#         if target_device is not None:
-#             asyncio.run(ble_utils.async_sample_from_device(target_device))
-#         else:
-#             break
-#         if not constants.DEBUG_MODE:
-#             # # Check for nearest door
-#             # navigate_to_door()
-#             # Sample olfaction sensors and make decisions
-#             # command_loop()
-#             command_loop_with_bout_detection()
-#         time.sleep(constants.STEP_TIME)
-#
-#     if constants.FLIGHT_MODE:
-#         tello.land()
-#         # if tello.stream_on:
-#         #     tello.streamoff()
-#         tello.end()
-#
-#
-#
-#
+            try:
+                tello.land()
+            except Exception:
+                # Motors already stopped (e.g. motor stop safety trigger); drone is grounded
+                pass

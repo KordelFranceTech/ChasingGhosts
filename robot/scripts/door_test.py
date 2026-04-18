@@ -24,7 +24,7 @@ for i in range(8):
     # results = model("../images/door_test.jpg")  # Predict on an image
     results = model(f"../images/doors/door_{i}.png")  # Predict on an image
     print(results[0])
-    print("----")
+    print("****")
     print(results)
     results[0].show()  # Display results
 
