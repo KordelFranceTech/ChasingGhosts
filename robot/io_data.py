@@ -1,6 +1,7 @@
 import pandas as pd
 
 
+# Note: start with default values to seed inital navigation decision
 UAV_IO_FRAME: pd.DataFrame = pd.DataFrame(
 
     {

@@ -8,3 +8,9 @@
 *.pt
 *.onnx
 *.csv
+*.txt
+*.json
+*/concepts/
+*/model/
+*/dataset/
+*/images/

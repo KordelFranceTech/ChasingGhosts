@@ -11,27 +11,6 @@ import constants
 from utils import ble_utils, ml_utils
 
 
-# ── Reference constants (kept for documentation / battery-longevity baseline) ──
-course_commands: list = [
-    "takeoff",
-    "forward 565",
-    "cw 90",
-    "forward 400",
-    "ccw 90",
-    "forward 343",
-    "cw 90",
-    "forward 154",
-    "forward 700",
-    "forward 170",
-    "ccw 90",
-    "forward 145",
-    "cw 90",
-    "forward 500",
-    "ccw 90",
-    "forward 120",
-    "land",
-]
-
 io_example: dict = {
     "ENV_temperatureC": 24,
     "ENV_humidity": 62,
