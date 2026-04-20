@@ -5,7 +5,6 @@ import pandas as pd
 import bleak
 from bleak import BleakClient, BleakScanner
 
-# from ..io_data import UAV_IO_FRAME
 import constants
 
 
@@ -17,7 +16,6 @@ async def discover_ble_devices():
 
 def connect_to_sensor():
     loop = asyncio.get_event_loop()
-    # loop.run_until_complete(async_sample_from_device())
     return loop.run_until_complete(async_iterate_devices())
 
 
@@ -56,18 +54,7 @@ async def async_sample_from_device(target_device):
         # print(f"received data: {db}")
 
     async with BleakClient(target_device.address) as client:
-        # print(f"Connected to {target_device.name}")
-
-        # # Get all services
-        # for service in client.services:
-        #     print(f"Service: {service.uuid} (Handle: {service.handle})")
-        #
-        #     # Get all characteristics within each service
-        #     for char in service.characteristics:
-        #         print(f"\tCharacteristic: {char.uuid} (Handle: {char.handle})")
-        #         print(f"\t\tProperties: {','.join(char.properties)}")
-
-
+        print(f"Connected to {target_device.name}")
         # Enable notifications for the characteristic
         await client.start_notify(constants.CHARACTERISTIC_UUID, notification_handler)
         # Keep the script running to receive notifications
@@ -81,8 +68,8 @@ def sync_connect_to_device():
     target_device = None
     for device in devices:
         print(device.name)
-        # if device.name == constants.SERVICE_NAME:
-        if "UAV" in str(device.name):
+        if device.name == constants.SERVICE_NAME:
+        # if "UAV" in str(device.name):
             target_device = device
             print(f"target device found: {target_device.name}")
             return target_device
@@ -114,7 +101,7 @@ def sync_sample_from_device(target_device):
         client.start_notify(constants.CHARACTERISTIC_UUID, notification_handler)
         # Keep the script running to receive notifications
         # Run for 10 seconds...adjust as needed
-        # asyncio.sleep(constants.BLE_SAMPLE_TIME)
+        asyncio.sleep(constants.BLE_SAMPLE_TIME)
 
 """    
     // Wifi
