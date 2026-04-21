@@ -1,20 +1,21 @@
-function P = compute_autopilot_gains(models,P)
-% Compute the autopilot gains that will be used in uavsim.
+function P = compute_autopilot_gains(models, P)
+% COMPUTE_AUTOPILOT_GAINS  Analytically derive PIR controller gains from TF models.
 %
-%   P = compute_autopilot_gains(models,P)
+% Uses the simplified transfer function models (from compute_tf_models) and
+% classical loop-shaping rules to compute kp, ki, kd gains for each
+% autopilot channel. Results are written into P.
 %
-%   Inputs:
-%      models:  Structure containing resulting simplified tranfer function
-%               models, as well as coefficients used to create the TF
-%               models.
-%      P:       uavsim parameter structure
+%   P = compute_autopilot_gains(models, P)
 %
-%   Outputs:
-%      P:       uavsim parameter structure containing autopilot gains
+% Inputs:
+%   models - TF model struct from compute_tf_models (G_dt2h, G_da2phi, etc.)
+%   P      - parameter struct; gains are added/updated in place
+%
+% Outputs:
+%   P      - parameter struct with updated autopilot gain fields
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
+% Practice", Princeton Univ. Press, 2012
 
     %% select gains for roll loop
 

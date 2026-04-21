@@ -1,21 +1,25 @@
 function models = compute_tf_models(P)
-% Compute the simplified linear transfer function models that will be used
-% to analytically develop autopilot control PID gains.
+% COMPUTE_TF_MODELS  Simplified linear transfer function models for each control channel.
+%
+% Computes second-order (double-integrator) transfer functions that relate
+% each control channel input to its primary state output, linearized about
+% the trim condition stored in P. These models are used to analytically
+% tune the PIR autopilot gains.
 %
 %   models = compute_tf_models(P)
 %
-%   Inputs:
-%      P:       uavsim paramter structure
+% Inputs:
+%   P      - parameter struct with trim condition (P.delta_t0, P.delta_e0, etc.)
 %
-%   Outputs:
-%      models:  Structure containing resulting simplified tranfer function
-%               models, as well as coefficients used to create the TF
-%               models.  (Having access to the coefficients will be useful
-%               in developing the autopilot gains.)
+% Outputs:
+%   models - struct containing transfer functions:
+%     models.G_dt2h      throttle → altitude
+%     models.G_da2phi    aileron  → roll
+%     models.G_de2theta  elevator → pitch
+%     models.G_dr2psi    rudder   → yaw
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
+% Practice", Princeton Univ. Press, 2012
 
     % Define Laplace s
     s=tf('s');
@@ -75,52 +79,6 @@ function models = compute_tf_models(P)
     psi_dot_dot = P.k_Tp*(P.k_omega^2)*((dev_trim_r_a - dev_trim_r_b) / P.Jz);
     models.G_dr2psi = psi_dot_dot / (s^2);
 
-    %
-    % Velocity channel coefficients and models
-    %
-%     models.G_theta2vhx = s/models.G_de2theta;
-
-%     %
-%     % Aileron channel coefficients and models
-%     %
-%     a_phi_a = ((P.rho*(P.Va0^2)*P.S_wing*P.b)/2);
-%     a_phi_b = ((P.Jz*P.C_ell_p) + (P.Jxz*P.C_n_p)) / gamma;
-%     a_phi_c = P.b / (2*P.Va0);
-%     a_phi_d = ((P.Jz*P.C_ell_delta_a) + (P.Jxz*P.C_n_delta_a)) / gamma;
-%     models.a_phi1 = -a_phi_a * a_phi_b * a_phi_c;
-%     models.a_phi2 = a_phi_a * a_phi_d;
-% 
-%     models.G_da2p = models.a_phi2/(s+models.a_phi1);
-%     models.G_da2phi = models.G_da2p/s;
-%     models.G_phi2chi = d_chi + (P.gravity / P.Va0) * (1/s);
-%         
-%     %
-%     % Elevator channel coefficients and models
-%     %
-%     a_theta_a = (P.rho*(P.Va0^2)*P.S_wing*P.c)/2;
-%     a_theta_b = 1 / P.Jy;
-%     a_theta_c = P.c / (2 * P.Va0);
-%     models.a_theta1 = -a_theta_a * a_theta_b * a_theta_c * P.C_m_q;
-%     models.a_theta2 = -a_theta_a * a_theta_b * P.C_m_alpha;
-%     models.a_theta3 = a_theta_a * a_theta_b * P.C_m_delta_e;
-%     models.G_de2q = (models.a_theta3 * s) / (s^2 + (models.a_theta1 * s) + models.a_theta2);
-%     models.G_de2theta = models.G_de2q * (1/s);
-%     models.G_theta2h = (P.Va0 / s);
-% 
-%     %
-%     % Throttle channel coefficients and models
-%     %
-%     a_V_a = (P.rho * P.C_prop * P.S_prop) / P.mass;
-%     a_V_b = (P.k_motor - P.Va0);
-%     a_V_c = (P.delta_t0 * (1 - 2 * P.delta_t0) * a_V_b) - (P.delta_t0 * P.Va0);
-%     a_V_d = (P.rho * P.Va0 * P.S_wing) / P.mass;
-%     a_V_e = (P.C_D_0 + (P.C_D_alpha * P.alpha0) + (P.C_D_delta_e * P.delta_e0));
-%     models.a_V1 = (-a_V_a * a_V_c) + (a_V_d * a_V_e);
-%     models.a_V2 = a_V_a * a_V_b * (P.Va0 + (2 * P.delta_t0 * a_V_b));
-%     models.a_V3 = P.gravity * cos(P.theta0 - P.alpha0);
-% 
-%     models.G_dt2Va = (models.a_V2 / (s + models.a_V1));
-%     models.G_theta2Va = (-models.a_V3 / (s + models.a_V1));
 end
 
 

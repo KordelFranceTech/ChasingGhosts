@@ -1,16 +1,19 @@
 % init_quadsim_params.m
 %
-% Initialize parameters structure (P) for quadsim
+% Initializes the parameters structure P for the quadrotor simulator.
 %
-% Inputs:
-%   None
+% This is the central configuration file for the simulation. Edit values
+% here to change vehicle environment, wind conditions, sensor noise levels,
+% control limits, or initial conditions.
+%
+% After calling this function, load_quadsim.m passes P through the trim
+% solver and linearizer before starting the Simulink model.
 %
 % Outputs:
-%   P: parameters structure used for quadsim
+%   P - parameter struct consumed by all quadsim blocks
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
+% Practice", Princeton Univ. Press, 2012
 function P = init_quadsim_params
 
     P = [];

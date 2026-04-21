@@ -1,17 +1,23 @@
 % quadsim_display_olfaction.m
 %
-% Visualization of quadsim variables with olfaction data
+% Real-time visualization for the olfaction-enabled simulation (quadsim_olfaction).
 %
-% Inputs:
-%   Various 
+% Extends quadsim_display.m with four additional subplots showing the
+% electrochemical sensor readings (Benzene, Hexane, C4, and Nitric Oxide)
+% from the olfaction payload in real time.
+%
+% Inputs (flat uu vector — same layout as quadsim_logging):
+%   uu = [x(1:12); f_and_m(1:6); wind_ned(1:3); deltas(1:4); ap_cmds(1:9);
+%          estimates(1:23); meas(1:18); time(1)]
+%
+% Olfaction channel values are read from estimates(16:23).
 %
 % Outputs:
-%   Creates a visualization in Figure 461
+%   (none) — updates Figure 461 in-place each call
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
-function quadsim_display_olfaction(uu,P)
+% Practice", Princeton Univ. Press, 2012
+function quadsim_display_olfaction(uu, P)
 
     % Plotting flags
     show_text = 1;

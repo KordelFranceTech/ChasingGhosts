@@ -1,18 +1,29 @@
 % quadsim_estimates.m
 %
-% Generation of feedback state estimates for quadsim
+% State estimation for the quadrotor using sensor fusion.
 %
-% Inputs:
-%   Measurements
-%   Time
+% Implements two EKF estimators running in parallel:
+%
+%   1. Attitude EKF — estimates roll (phi) and pitch (theta) by fusing
+%      gyroscope rates with accelerometer measurements.
+%
+%   2. GPS EKF — estimates NED position and velocity by integrating
+%      accelerometer measurements and correcting with GPS fixes.
+%
+% Yaw is estimated directly from the low-pass-filtered magnetometer.
+% Altitude is estimated from the barometric (static pressure) altimeter.
+%
+% Inputs (flat uu vector):
+%   uu = [meas(1:18); time(1)]
+%   meas - 18-element sensor measurement vector from quadsim_sensors
+%   time - simulation time, s
 %
 % Outputs:
-%   Feedback state estimates
+%   out - 23-element state estimate vector consumed by quadsim_control
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
-function out = quadsim_estimates(uu,P)
+% Practice", Princeton Univ. Press, 2012
+function out = quadsim_estimates(uu, P)
 
     % Extract variables from input vector uu
     %   uu = [meas(1:18); time(1)];
@@ -71,8 +82,7 @@ function out = quadsim_estimates(uu,P)
     P_launch = P0 * exp(-M * P.gravity / R / T * P.h0_ASL);
     h_baro = -R * T / M / P.gravity * log(lpf_static_press / P_launch); % Altitude estimate using Baro altimeter, meters above h0_ASL
 
-    %% Note: zero out pressure since there is no pitot tube on quad-rotor
-    % Va_pitot = sqrt(2 * lpf_diff_press / P.rho); % Airspeed estimate using pitot tube, m/s
+    % No pitot tube on quadrotor — airspeed estimate is not available
     Va_pitot = 0.0;
 
     % EKF to estimate roll and pitch attitude
@@ -141,8 +151,9 @@ function out = quadsim_estimates(uu,P)
     theta_hat_unc = sqrt(P_att(2,2)); % EKF-predicted uncertainty in theta estimate, rad 
 
 
-    %% GPS EKF
-    % Use GPS for NE position, and ground velocity vector
+    % --- GPS EKF ---
+    % Estimates NED position and velocity by dead-reckoning accelerometers
+    % and correcting with GPS position/velocity measurements when available.
     R_ned2b = eulerToRotationMatrix(xhat_att(1), xhat_att(2), lpf_psi_mag);
     eta_pn = (P.sigma_eta_gps_north);
     eta_pe = (P.sigma_eta_gps_east);
@@ -201,7 +212,7 @@ function out = quadsim_estimates(uu,P)
         xhat_gps = xhat_gps + (L_gps*(y_gps - h_gps)); % States updated with measurement information
     end
 
-    %% Note: not used but could prove helpful later
+    % EKF-predicted uncertainties (logged in out structure via quadsim_logging)
     pn_hat_unc = sqrt(P_gps(1,1));
     pe_hat_unc = sqrt(P_gps(2,2));
     h_hat_unc = sqrt(P_gps(3,3));

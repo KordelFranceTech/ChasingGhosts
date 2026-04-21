@@ -1,17 +1,21 @@
 % quadsim_logging.m
 %
-% Logging of quadsim variables
+% Records simulation data to the MATLAB base workspace at each time step.
 %
-% Inputs:
-%   Various 
+% Builds up an "out" struct that accumulates all logged signals over the
+% course of the simulation. After the run, call make_quadsim_plots to
+% visualize the results.
+%
+% Inputs (flat uu vector):
+%   uu = [x(1:12); f_and_m(1:6); wind_ned(1:3); deltas(1:4); ap_cmds(1:9);
+%          estimates(1:23); meas(1:18); time(1)]
 %
 % Outputs:
-%   Creates a "out" structure in the Matlab workspace
+%   (none) — writes/updates "out" struct directly in the base workspace
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
-function quadsim_logging(uu,P)
+% Practice", Princeton Univ. Press, 2012
+function quadsim_logging(uu, P)
 
     % Logging flags
     log_commands     = 1;

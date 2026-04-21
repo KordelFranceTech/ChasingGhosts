@@ -1,19 +1,28 @@
 % quadsim_sensors.m
 %
-% Generation of sensor measurements for quadsim
+% Simulates sensor measurements for the quadrotor, including noise and bias.
 %
-% Inputs:
-%   Forces and Moments (used to create accelerometer measurement)
-%   UAV States
-%   Wind vector
-%   Time
+% Models the following sensors:
+%   - Gyroscopes (body rates p, q, r)
+%   - Accelerometers (body-frame specific forces ax, ay, az)
+%   - Barometric altimeter (static pressure → altitude)
+%   - Magnetometer (yaw from magnetic heading)
+%   - GPS (position and velocity, with Gauss-Markov error growth)
+%
+% Noise parameters (sigma_noise_*, sigma_bias_*) are set in init_quadsim_params.m.
+%
+% Inputs (flat uu vector):
+%   uu = [f_and_m(1:6); x(1:12); wind_ned(1:3); time(1)]
+%   f_and_m  - forces and moments in body frame (used by accelerometer model)
+%   x        - 12-state vector
+%   wind_ned - wind in NED frame, m/s
+%   time     - simulation time, s
 %
 % Outputs:
-%   Sensor Measurements
+%   out - 18-element sensor measurement vector
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
+% Practice", Princeton Univ. Press, 2012
 function out = quadsim_sensors(uu, P)
 
     % Extract variables from input vector uu
@@ -45,34 +54,24 @@ function out = quadsim_sensors(uu, P)
     q     = x(11);  % body rate about y, rad/s
     r     = x(12);  % body rate about z, rad/s
 
-    % Gyro Measurements
+    % Gyroscope measurements — add white Gaussian noise to true body rates
     eta_gyro_x = P.sigma_noise_gyro * randn;
     eta_gyro_y = P.sigma_noise_gyro * randn;
     eta_gyro_z = P.sigma_noise_gyro * randn;
     p_gyro = p + eta_gyro_x; % rad/s
     q_gyro = q + eta_gyro_y; % rad/s
     r_gyro = r + eta_gyro_z; % rad/s
-    %% for plotting gyros
-    % plot(out.time_s, out.p_dps, out.time_s, out.p_gyro_dps)
-    % xlabel('Time, s')
-    % ylabel('p, deg')
-    % legend('p', 'p (gyro)')
 
-    % Accelerometer Measurements
+    % Accelerometer measurements — specific force = total force/mass minus gravity projection
     ax = ((1 / P.mass) * fb_x) + (P.gravity * sin(theta));
     ay = ((1 / P.mass) * fb_y) - (P.gravity * cos(theta) * sin(phi));
     az = ((1 / P.mass) * fb_z) - (P.gravity * cos(theta) * cos(phi));
     eta_accel_x = P.sigma_noise_accel * randn;
     eta_accel_y = P.sigma_noise_accel * randn;
     eta_accel_z = P.sigma_noise_accel * randn;
-    ax_accel= ax + eta_accel_x; % m/s^2
-    ay_accel= ay + eta_accel_y; % m/s^2
-    az_accel= az + eta_accel_z; % m/s^2
-    %% for plotting acceleration
-    % plot(out.time_s,  out.ax_accel_mps2, out.time_s, out.ay_accel_mps2, out.time_s, out.az_accel_mps2)
-    % xlabel('Time_s')
-    % ylabel('deg / s')
-    % legend('a_x', 'a_y', 'a_z')
+    ax_accel = ax + eta_accel_x; % m/s^2
+    ay_accel = ay + eta_accel_y; % m/s^2
+    az_accel = az + eta_accel_z; % m/s^2
 
     % Barometric Pressure Altimeter (Note: don't overwrite P structure!)
     P0 = 101325;    % Standard pressure at sea level, N/m^2
@@ -90,15 +89,11 @@ function out = quadsim_sensors(uu, P)
     static_press = P_uav + bias_static_press + eta_static_press; % True static pressure at UAV altitude (above sea level), N/m^2
     h_hat = ((-R * T) / (M * P.gravity)) * log(true_static_press / P_launch);
 
-    % Airspeed Pitot Measurment for axially mounted pitot tube
+    % Differential pressure (pitot tube) — not present on quadrotor; output zero
     persistent bias_diff_press
     if(time==0)
         bias_diff_press = P.sigma_bias_diff_press*randn;
     end
-    %% Note: not needed for quad-rotor - no pitot tube
-    %eta_diff_press = P.sigma_noise_diff_press * randn;
-    %true_diff_press = 0.5 * P.rho * (Va^2); % True differential pressure at UAV airspeed
-    %diff_press = true_diff_press + bias_diff_press + eta_diff_press; % Measured differential pressure
     diff_press = 0;
 
     % Magnetometer Measurement

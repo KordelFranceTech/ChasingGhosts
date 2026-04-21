@@ -1,18 +1,14 @@
 % uavsim_estimates.m
 %
-% Generation of feedback state estimates for uavsim
+% Alternative state estimator (simplified EKF variant).
 %
-% Inputs:
-%   Measurements
-%   Time
-%
-% Outputs:
-%   Feedback state estimates
+% This file mirrors quadsim_estimates.m but is retained as a separate
+% entry point for the uavsim Simulink model. See quadsim_estimates.m
+% for the full documented implementation.
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
-function out = uavsim_estimates(uu,P)
+% Practice", Princeton Univ. Press, 2012
+function out = uavsim_estimates(uu, P)
 
     % Extract variables from input vector uu
     %   uu = [meas(1:18); time(1)];

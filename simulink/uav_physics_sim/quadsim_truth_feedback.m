@@ -1,26 +1,30 @@
 % quadsim_truth_feedback.m
 %
-% True states in same format as feedback estimates for quadsim
-%  (i.e. fake state estimation)
+% Passes true (ground-truth) states through in the same format as the
+% state estimate vector produced by quadsim_estimates.m.
 %
-% Inputs:
-%   UAV states
-%   Wind in NED frame
-%   Time
+% Use this block in place of quadsim_estimates when you want the autopilot
+% to run on perfect state information — useful for isolating controller
+% behavior from estimator noise during development and debugging.
+%
+% Inputs (flat uu vector):
+%   uu = [x(1:12); wind_ned(1:3); time(1)]
+%   x        - 12-state vector [pn,pe,pd, u,v,w, phi,theta,psi, p,q,r]
+%   wind_ned - wind vector in NED frame, m/s
+%   time     - simulation time, s
 %
 % Outputs:
-%   Fake estimates for feedback
+%   out - 23-element estimate vector (same layout as quadsim_estimates output)
 %
 % Adapted from Beard & McClain, "Small Unmanned Aircraft: Theory and
-% Practice", RWBeard & TWMcClain, Princeton Univ. Press, 2012
-%   
-function out = quadsim_truth_feedback(uu,P)
+% Practice", Princeton Univ. Press, 2012
+function out = quadsim_truth_feedback(uu, P)
 
-    % Extract variables from input vector uu
-    %   uu = [x(1:P.12); wind_ned(1:3); time(1)];
-    k=(1:12);        x=uu(k);         % states
-    k=k(end)+(1:3);  wind_ned=uu(k);  % wind vector, ned, m/s
-    k=k(end)+(1);    time=uu(k);      % Simulation time, s
+    % Unpack input vector
+    %   uu = [x(1:12); wind_ned(1:3); time(1)]
+    k=(1:12);        x=uu(k);         % 12-state vector
+    k=k(end)+(1:3);  wind_ned=uu(k);  % wind vector, NED frame, m/s
+    k=k(end)+(1);    time=uu(k);      % simulation time, s
 
     % Extract state variables from x
     pn    = x(1);   % North position, m
@@ -45,11 +49,10 @@ function out = quadsim_truth_feedback(uu,P)
     % Rotate wind vector to body frame
     wind_b = R_ned2b*wind_ned;
 
-    % estimate states (using real state data)
+    % Pass true states through as estimates
     pn_hat    = pn;
     pe_hat    = pe;
     h_hat     = -pd;
-    %Va_hat    = Va; % change from uavsim
     phi_hat   = phi;
     theta_hat = theta;
     p_hat     = p;
@@ -62,12 +65,12 @@ function out = quadsim_truth_feedback(uu,P)
     we_hat    = wind_ned(2);
     psi_hat   = psi;
     
-    % Compile output vector
+    % Compile output vector (same layout as quadsim_estimates)
     out = [...
             pn_hat;...
             pe_hat;...
             h_hat;...
-            0;... % change from uavsim
+            0;...       % Va_hat placeholder (no airspeed sensor on quadrotor)
             phi_hat;...
             theta_hat;...
             psi_hat;...
