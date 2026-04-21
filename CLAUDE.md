@@ -1,6 +1,6 @@
 # Chasing Ghosts - UAV Navigation Project
 
-## Goal
+### Goal
 This project is based on the paper "Chasing Ghosts" from the following URL: https://arxiv.org/pdf/2602.19577.
 I am the author.
 The goal of this project is to command a UAV to navigate a course using vision and chemical sensing.
@@ -17,4 +17,4 @@ The specific variant of the model I use from this HuggingFace repository can be 
 
 The YOLO model I use for fast updates mentioned in the paper can be found within the `./models` subdirectory of this repository here.
 
-The reinforcement learning model is trained in navigation/paper/simple/plume_env_v4_1.py, and a policy is output that is used in the paper.
+The reinforcement learning model is trained in `navigation/paper/simple/plume_env_v4_1.py`, and a policy is output that is used in the paper.

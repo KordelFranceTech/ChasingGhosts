@@ -1,12 +1,12 @@
-# Chasing Ghosts: A Simulation-to-Real Olfactory Navigation Stack with Optional Vision Augmentation
+# Chasing Ghosts: A Sim2Real Olfaction-Vision Navigation Stack
 ---
 **Note: Code consolidation for the paper still in progress**
 ---
-The code for this repository is based on the paper __Chasing Ghosts: A Simulation-to-Real Olfactory Navigation Stack with Optional Vision Augmentation__.
+The code for this repository is based on the paper [__Chasing Ghosts: A Simulation-to-Real Olfactory Navigation Stack with Optional Vision Augmentation__](https://arxiv.org/abs/2602.19577).
 All CAD and code mentioned in the paper is conveniently co-located here into a single repository.
 
 
-If you use any of the code from this repo, please be sure to cite the work of the authors below:
+If you use any of the code or cad models from this repo, please be sure to cite the work of the authors below:
 
 ```
 @misc{france2026chasingghostssimulationtorealolfactory,
