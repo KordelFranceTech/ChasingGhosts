@@ -13,6 +13,7 @@ N_STATES: int = 9
 N_ACTIONS: int = 7
 USE_BLANKS: bool = True
 
+# todo @kordel.france: add in optimal policy and paste here as table
 
 # Simple 2D grid environment for chemical plume tracking
 class PlumeEnv:

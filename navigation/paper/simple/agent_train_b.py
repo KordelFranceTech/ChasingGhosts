@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.collections import LineCollection
 
+# todo @kordel.france: add in optimal policy and paste here as table
+
 # -------------------------------------------------
 # Environment (unchanged)
 # -------------------------------------------------
